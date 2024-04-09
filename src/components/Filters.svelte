@@ -1,17 +1,18 @@
+<!-- Filters.svelte -->
 <script>
     import { resultsStore } from "../store.js";
     import { onMount } from "svelte";
     import axios from "axios";
 
     let constellations = [
-        "ORI",
-        "SCO",
-        "LEO",
-        "LYR",
-        "CYG",
-        "AQL",
-        "SGE",
-        "VUL",
+        "Orion",
+        "Scorpius",
+        "Leo",
+        "Lyra",
+        "Cygnus",
+        "Aquila",
+        "Sagitta",
+        "Vulpecula",
     ];
     let selectedConstellation = constellations[0];
 
@@ -35,10 +36,32 @@
     $: selectedConstellation, fetchStars();
 </script>
 
-<label for="constellationSelect">Wähle eine Konstellation:</label>
+<div class="filters">
+    <label for="constellationSelect" class="label">Choose a constellation:</label>
+    <select id="constellationSelect" bind:value={selectedConstellation} class="select">
+        {#each constellations as constellation}
+            <option value={constellation}>{constellation}</option>
+        {/each}
+    </select>
+</div>
 
-<select id="constellationSelect" bind:value={selectedConstellation}>
-    {#each constellations as constellation}
-        <option value={constellation}>{constellation}</option>
-    {/each}
-</select>
+<style>
+    .filters {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .label {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-right: 10px;
+    }
+
+    .select {
+        padding: 8px;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+</style>
