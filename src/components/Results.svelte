@@ -1,6 +1,6 @@
-<!-- Results.svelte -->
-<script>
+<script lang="ts">
     import { resultsStore } from "../store.js";
+    export let selectedConstellation: string;
 </script>
 
 <div class="results">
@@ -11,8 +11,7 @@
                 <th>Name</th>
                 <th>Bayer</th>
                 <th>Flamsteed</th>
-                <th>vMag</th>
-            </tr>
+                <th>mag</th>
         </thead>
         <tbody>
             {#each $resultsStore as star}
@@ -33,33 +32,27 @@
         border-radius: 8px;
         padding: 20px;
     }
-
     .results-heading {
         font-size: 1.5rem;
         color: #333;
         margin-bottom: 10px;
     }
-
     table {
         width: 100%;
         border-collapse: collapse;
         border-spacing: 0;
     }
-
     th, td {
         padding: 10px;
         border-bottom: 1px solid #ddd;
     }
-
     th {
-        text-align: left;
+        text-align:left;
         background-color: #f2f2f2;
     }
-
     tr:nth-child(even) {
         background-color: #f9f9f9;
     }
-
     tr:hover {
         background-color: #ddd;
     }
