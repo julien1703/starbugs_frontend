@@ -1,12 +1,24 @@
-<script lang="ts">
+<!-- Filters.svelte -->
+<script>
     import { resultsStore } from "../store.js";
     import { onMount } from "svelte";
     import axios from "axios";
 
-    export let selectedConstellation: string = '';
+    let constellations = [
+        "Orion",
+        "Scorpius",
+        "Leo",
+        "Lyra",
+        "Cygnus",
+        "Aquila",
+        "Sagitta",
+        "Vulpecula",
+    ];
+    let selectedConstellation = constellations[0];
 
     async function fetchStars() {
         const API_URL = `https://api.julien-offray.de/constellation?constellation=${selectedConstellation}`;
+         console.log(API_URL);
         try {
             const response = await axios.get(API_URL);
             resultsStore.set(response.data);
@@ -14,14 +26,21 @@
             console.error("Fehler beim Abrufen der Sterndaten:", error);
         }
     }
+    
 
-    $: if (selectedConstellation) fetchStars();
+    onMount(() => {
+        fetchStars();
+    });
+
+    $: selectedConstellation, fetchStars();
 </script>
 
 <div class="filters">
-    <label for="constellationSelect" class="label">Wähle ein Sternbild:</label>
+    <label for="constellationSelect" class="label">Choose a constellation:</label>
     <select id="constellationSelect" bind:value={selectedConstellation} class="select">
-        <!-- Es muss sichergestellt werden, dass constellations hier korrekt initialisiert und gefüllt wird -->
+        {#each constellations as constellation}
+            <option value={constellation}>{constellation}</option>
+        {/each}
     </select>
 </div>
 
@@ -30,12 +49,14 @@
         text-align: center;
         margin-bottom: 20px;
     }
+
     .label {
         font-size: 1.2rem;
         font-weight: bold;
         color: #333;
         margin-right: 10px;
     }
+
     .select {
         padding: 8px;
         font-size: 1rem;
