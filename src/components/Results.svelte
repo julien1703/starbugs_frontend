@@ -1,4 +1,4 @@
-<!-- Results.svelte -->
+<!-- Results.svelte
 <script>
     import { resultsStore } from "../store.js";
 </script>
@@ -63,4 +63,4 @@
     tr:hover {
         background-color: #ddd;
     }
-</style>
+</style> -->

@@ -1,53 +1,52 @@
-<!-- app.svelte -->
 <script>
     import Filters from "./components/Filters.svelte";
-    import Results from "./components/Results.svelte";
-  </script>
+    import { resultsStore } from "./store.js";
+    import { onMount } from "svelte";
+    import axios from "axios";
+    import { createStars, drawStars } from "./sky.js";
   
-  <main class="container">
-    <header class="header">
-        <h1 class="title">Constellarium</h1>
-    </header>
-    <section class="content">
-        <Filters />
-        <Results />
-    </section>
-    <footer class="footer">
-        <p class="copyright">© 2024 Constellarium. All rights reserved.</p>
-    </footer>
-  </main>
+    let stars = [];
   
-  <style>
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
+    async function fetchStars(constellation) {
+      const API_URL = `https://api.julien-offray.de/constellation?constellation=${constellation}`;
+      try {
+        const response = await axios.get(API_URL);
+        resultsStore.set(response.data);
+        stars = createStars(response.data);
+        drawStars(stars);
+      } catch (error) {
+        console.error("Error fetching star data:", error);
+      }
     }
   
-    .header {
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        padding: 20px 0;
-        margin-bottom: 20px;
-    }
+    $: stars, drawStars(stars);
   
-    .title {
-        font-size: 2rem;
-        margin: 0;
-    }
+    onMount(() => {
+      fetchStars("ORI");
+    });
+</script>
   
-    .content {
-        background-color: #f9f9f9;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
+<main class="container">
+    <div class="filters">
+      <Filters {fetchStars}/>
+    </div>
+</main>
   
-    .footer {
-        text-align: center;
-        color: #666;
-        font-size: 0.8rem;
-    }
-  </style>
+<style>
+  .container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
   
+  .filters {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 8px;
+  }
+</style>
