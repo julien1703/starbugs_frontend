@@ -15,6 +15,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.getElementById('sky-container').appendChild(renderer.domElement);
 
 // Add orbit controls
+
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;
