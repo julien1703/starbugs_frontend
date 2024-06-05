@@ -1,38 +1,22 @@
 <script>
   import Filters from "./components/Filters.svelte";
-  import { resultsStore } from "./store.js";
   import { onMount } from "svelte";
-  import axios from "axios";
-  import { createStars, drawStars } from "./sky.js";
+  import { fetchStars } from './sky.js';
 
-  let stars = [];
-  let connections = [];
-  
-  async function fetchStars(constellation) {
-    const API_URL = `https://api.julien-offray.de/constellation?constellation=${constellation}`;
-    try {
-      const response = await axios.get(API_URL);
-      const { stars: fetchedStars, connections: fetchedConnections } = response.data;
-      resultsStore.set(fetchedStars);
-      stars = createStars(fetchedStars);
-      connections = fetchedConnections;
-      drawStars(stars, connections);
-    } catch (error) {
-      console.error("Error fetching star data:", error);
-    }
+  async function handleFetchStars(constellation) {
+    await fetchStars(constellation);
   }
 
-  $: stars, drawStars(stars, connections);
-
   onMount(() => {
-    fetchStars("ORI");
+    handleFetchStars("ORI");
   });
 </script>
 
 <main class="container">
   <div class="filters">
-    <Filters {fetchStars}/>
+    <Filters {handleFetchStars}/>
   </div>
+  <div id="sky-container"></div>
 </main>
 
 <style>

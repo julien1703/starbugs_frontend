@@ -1,10 +1,10 @@
 <script>
-  export let fetchStars;
-  let constellations = ["ORI", "SCO", "LEO", "LYR"];
-  let selectedConstellation = "";
+  export let handleFetchStars;
+  let constellations = ["ARI", "TAU", "GEM", "CNC", "LEO", "VIR", "LIB", "SCO", "SGR", "CAP", "AQR", "PSC", "ORI", "LYR"];
+  let selectedConstellation = "ORI";
 
   function handleSelectionChange() {
-    fetchStars(selectedConstellation);
+    handleFetchStars(selectedConstellation);
   }
 </script>
 
