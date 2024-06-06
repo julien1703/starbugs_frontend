@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Constellarium</title>
-  <style>
+  <!-- <style>
     body {
       margin: 0;
       padding: 0;
@@ -26,7 +26,7 @@
       height: 100%;
       background: transparent;
     }
-    .header, .filters, .footer {
+    .header, .footer {
       position: absolute;
       z-index: 10;
     }
@@ -37,10 +37,6 @@
       padding: 20px 0;
       background: rgba(0, 0, 0, 0.5);
     }
-    .filters {
-      top: 80px;
-      left: 20px;
-    }
     .footer {
       bottom: 0;
       width: 100%;
@@ -50,21 +46,32 @@
       color: #666;
       font-size: 0.8rem;
     }
-  </style>
+    .carousel {
+      position: absolute;
+      bottom: 60px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 11;
+    }
+    .carousel-item {
+      margin: 0 10px;
+      cursor: pointer;
+      text-align: center;
+      padding: 10px;
+      border: 1px solid white;
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    .carousel-item p {
+      color: white;
+      margin: 0;
+    }
+  </style> -->
+  <script type="module" src="/src/main.js"></script>
 </head>
 <body>
-  <div id="app">
-    <header class="header">
-      <h1 class="title">Constellarium</h1>
-    </header>
-    <div class="filters">
-      <!-- Filters will be injected here by Svelte -->
-    </div>
-    <div id="sky-container"></div>
-    <footer class="footer">
-      <p>© 2024 Constellarium. All rights reserved.</p>
-    </footer>
-  </div>
-  <script type="module" src="/src/main.js"></script>
+<div id="app"></div>
 </body>
 </html>

@@ -1,4 +1,4 @@
-<script>
+<!-- <script>
   export let handleFetchStars;
   let constellations = ["ARI", "TAU", "GEM", "CNC", "LEO", "VIR", "LIB", "SCO", "SGR", "CAP", "AQR", "PSC", "ORI", "LYR"];
   let selectedConstellation = "ORI";
@@ -44,4 +44,4 @@
     background: rgba(255, 255, 255, 0.1);
     color: white;
   }
-</style>
+</style> -->
