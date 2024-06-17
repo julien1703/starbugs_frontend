@@ -3,27 +3,23 @@
   import axios from "axios";
   import * as THREE from "three";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+  import { writable } from 'svelte/store';
 
   let raycaster = new THREE.Raycaster();
   let mouse = new THREE.Vector2();
 
   let camera, scene, renderer, controls;
+  let loading = writable(false);
+  let errorMessage = writable('');
+
   const maxMag = 8;
   const minRadius = 0.17;
   const maxRadius = 1587.37;
   const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
   const maxNewRadius = 0.3; // Maximalgröße für die Darstellung
-  let lastRemovedStar = {
-    id: 1,
-    x: 0.000005,
-    y: 0,
-    z: 0,
-    absmag: 4.85,
-    ci: 0.9,
-  };
-  let selectedStar = { id: 1, x: 0.000005, y: 0, z: 0, absmag: 4.85, ci: 0.9 };
+  let lastRemovedStar = null;
+  let selectedStar = null;
   let sunIgnored = false;
-
 
   let lineGroup = new THREE.Group();
 
@@ -44,49 +40,46 @@
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000); // Setzen Sie explizit eine Hintergrundfarbe
 
-    // scene.rotation.z = THREE.MathUtils.degToRad(337.5);
-
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
     controls = new OrbitControls(camera, renderer.domElement);
   }
 
-
-  function loadStars(constellation) {
-    const url =`https://api.julien-offray.de/constellation?constellation=${constellation}`;
-    // const body = { maxmag: maxMag };
-    axios
-    .get(url)
-    .then((response) => {
+  async function loadStars(constellation) {
+    loading.set(true);
+    const url = `https://api.julien-offray.de/constellation?constellation=${constellation}`;
+    try {
+      const response = await axios.get(url);
       scene.clear(); // Leert die Szene vor dem Hinzufügen neuer Sterne
       selectedArray = constellation;
-        console.log(response.data);
-        const starsData = response.data.stars
-          .filter(
-            (star) =>
-              star.x0 !== undefined &&
-              star.y0 !== undefined &&
-              star.z0 !== undefined
-          )
-          .map((star) => ({
-            x: star.x0,
-            y: star.y0,
-            z: star.z0,
-            id: star.id,
-            absmag: star.absmag,
-            ci: star.ci,
-            mag: star.mag,
-            dist: star.dist,
-            ra: star.ra,
-            dec: star.dec,
-          }));
-        addStars(starsData);
-        animate();
-      })
-      .catch((error) => {
-        console.error("Fehler beim Abrufen der Sterndaten:", error);
-      });
+      const starsData = response.data.stars
+        .filter(
+          (star) =>
+            star.x0 !== undefined &&
+            star.y0 !== undefined &&
+            star.z0 !== undefined
+        )
+        .map((star) => ({
+          x: star.x0,
+          y: star.y0,
+          z: star.z0,
+          id: star.id,
+          absmag: star.absmag,
+          ci: star.ci,
+          mag: star.mag,
+          dist: star.dist,
+          ra: star.ra,
+          dec: star.dec,
+        }));
+      addStars(starsData);
+      animate();
+      loading.set(false);
+    } catch (error) {
+      console.error("Fehler beim Abrufen der Sterndaten:", error);
+      errorMessage.set('Fehler beim Laden der Sterne');
+      loading.set(false);
+    }
   }
 
   function addStars(stars) {
@@ -95,14 +88,12 @@
       return;
     }
 
-    console.log(stars);
     stars.forEach((star) => {
       if (star.id === 1 && sunIgnored == false) {
         sunIgnored = true;
         return;
       }
       let starGeometry;
-
       const originalRadius = berechneSternRadius(star.ci, star.absmag);
       let scaledRadius = mapRadius(
         originalRadius,
@@ -111,7 +102,6 @@
         minNewRadius,
         maxNewRadius
       );
-      // console.log(scaledRadius);
       let color = getColorByCI(star.ci);
       let intensity = getIntensityByMag(star.mag);
       if (star.id === 1) {
@@ -119,7 +109,6 @@
         intensity = 0xff0000;
       }
       if (isNaN(scaledRadius)) {
-        console.log("+");
         scaledRadius = 0.05;
       }
       if (star.dist < 200) {
@@ -138,21 +127,9 @@
 
       const sphere = new THREE.Mesh(starGeometry, starMaterial);
       sphere.position.set(star.y, star.z, star.x);
-      sphere.userData.starData = {
-        id: star.id,
-        x: star.x,
-        y: star.y,
-        z: star.z,
-        absmag: star.absmag,
-        ci: star.ci,
-        mag: star.mag,
-        dist: star.dist,
-      }; // Daten anhängen
+      sphere.userData.starData = { ...star }; // Daten anhängen
       scene.add(sphere);
     });
-    // const vector = new THREE.Vector3(stars[0].y, stars[0].z, stars[0].x);
-    // controls.traget.set(vector);
-    // controls.update();
   }
 
   function animate() {
@@ -166,14 +143,12 @@
     const frustum = new THREE.Frustum();
     const cameraViewProjectionMatrix = new THREE.Matrix4();
 
-    // Aktualisiere die Frustum-Grenzen basierend auf der aktuellen Kameraposition und -konfiguration
     cameraViewProjectionMatrix.multiplyMatrices(
       camera.projectionMatrix,
       camera.matrixWorldInverse
     );
     frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
 
-    // Durchlaufe alle Objekte der Szene und aktualisiere ihre Sichtbarkeit
     scene.traverse(function (object) {
       if (object instanceof THREE.Mesh) {
         object.visible = frustum.intersectsObject(object);
@@ -182,21 +157,17 @@
   }
 
   function onMouseClick(event) {
-    // Berechnen der Mausposition im Normalized Device Coordinate (NDC) Raum
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    // Aktualisieren des Raycasters mit der Kamera und Mausposition
     raycaster.setFromCamera(mouse, camera);
 
-    // Berechnen von Objekten, die vom Raycaster geschnitten werden
     const intersects = raycaster.intersectObjects(scene.children);
 
     if (intersects.length > 0) {
       let firstObject = intersects[0].object;
       if (firstObject.userData.starData) {
         console.log(firstObject.userData.starData);
-
         if (lastRemovedStar != null) addStars([lastRemovedStar]);
 
         lastRemovedStar = null;
@@ -209,18 +180,6 @@
     }
   }
   window.addEventListener("click", onMouseClick);
-
-
-
-
-
-
-
-
-
-
-
-
 
   function getColorByCI(ci) {
     if (ci < 0)
@@ -235,15 +194,12 @@
   }
 
   function getIntensityByMag(mag) {
-    // Beispiel einer einfachen linearen Skalierung:
-    // Hellerer Stern (niedriger 'mag') hat höhere Intensität
-    const minMag = 0; // Minimal erwarteter 'mag'-Wert
-    const maxMag = 10; // Maximal sinnvoller 'mag'-Wert für diese Skala
-    const minIntensity = 0.1; // Minimale Intensität
-    const maxIntensity = 1; // Maximale Intensität
+    const minMag = 0;
+    const maxMag = 10;
+    const minIntensity = 0.1;
+    const maxIntensity = 1;
 
-    // Skaliere 'mag' auf den Intensitätsbereich
-    if (mag > maxMag) mag = maxMag; // Begrenze den 'mag'-Wert, um Überintensitäten zu vermeiden
+    if (mag > maxMag) mag = maxMag;
     const intensity =
       maxIntensity -
       ((mag - minMag) / (maxMag - minMag)) * (maxIntensity - minIntensity);
@@ -251,21 +207,19 @@
   }
 
   function berechneSternRadius(CI, M) {
-    // if(CI == undefined || M == undefined) console.log("CI" + CI + "M" +M);
-    const L_sonne = 3.828e26; // Leuchtkraft der Sonne in Watt
-    const sigma = 5.67e-8; // Stefan-Boltzmann-Konstante in W/m^2/K^4
+    const L_sonne = 3.828e26;
+    const sigma = 5.67e-8;
     const pi = Math.PI;
 
     const T = 4600 * (1 / (0.92 * CI + 1.7) + 1 / (0.92 * CI + 0.62));
     const L = L_sonne * Math.pow(10, 0.4 * (4.83 - M));
     const R = Math.sqrt(L / (4 * pi * sigma * Math.pow(T, 4)));
-    const R_sonnen = R / 6.96e8; // Umrechnung in Sonnenradien
+    const R_sonnen = R / 6.96e8;
 
     return R_sonnen;
   }
 
   function mapRadius(originalRadius, minOriginal, maxOriginal, minNew, maxNew) {
-    // Skalieren des Radius innerhalb des neuen Bereichs
     return (
       ((originalRadius - minOriginal) / (maxOriginal - minOriginal)) *
         (maxNew - minNew) +
@@ -288,16 +242,13 @@
     { name: "Pisces", abbreviation: "psc" },
   ];
 
-
   let selectedArray;
   $: if (selectedArray) {
     updateLines(selectedArray);
-    console.log("debug");
-  } 
+  }
 
   function updateLines(arrayName) {
-    lineGroup.clear(); // Löscht nur die Linien in der Gruppe
-    console.log(arrayName);
+    lineGroup.clear();
     let array = arrays[arrayName];
     if (array) {
       for (let i = 1; i < array.length - 1; i++) {
@@ -322,11 +273,9 @@
     let color = Math.floor(Math.random() * 0xffffff);
     let material = new THREE.LineBasicMaterial({ color: color });
     let line = new THREE.Line(geometry, material);
-    lineGroup.add(line); // Füge die Linie zur Gruppe hinzu
+    lineGroup.add(line);
     scene.add(lineGroup);
-    console.log(center);
   }
-
 
   let arrays = {
     leo: [
@@ -340,9 +289,6 @@
       { x0: -16.442, y0: 3.337, z0: 6.281 },
       { x0: -34.003, y0: 15.861, z0: 13.539 },
       { x0: -21.019, y0: 11.132, z0: 5.041 },
-      // { x0: -46.506, y0: 9.411, z0: 13.096 },
-      // { x0: -72.313, y0: 12.381, z0: 7.749 },
-      // { x0: -10.634, y0: 0.508, z0: 2.768 }
     ],
     gem: [
       { x: -18.741125000000004, y: 77.5919375, z: 34.9838125 },
@@ -591,7 +537,6 @@
       { x0: 105.454, y0: 35.156, z0: 50.855 },
       { x0: 101.738, y0: 42.915, z0: 30.302 },
       { x0: 75.809, y0: 37.547, z0: 13.638 },
-      // stern daneben
       { x0: 41.361, y0: 24.472, z0: 2.364 },
       { x0: 48.236, y0: 26.069, z0: 3.054 },
       { x0: 100.757, y0: 47.752, z0: 10.712 },
@@ -618,6 +563,7 @@
     transform: translateX(-50%);
     display: flex;
     gap: 10px;
+    z-index: 100;
   }
 
   button {
@@ -663,11 +609,15 @@
 <main>
   <div class="buttons">
     {#each constellations as constellation}
-      <button on:click={() => {
-       loadStars(constellation.abbreviation)}
-      }>
+      <button on:click={() => loadStars(constellation.abbreviation)}>
         {constellation.name}
       </button>
     {/each}
   </div>
+  {#if $loading}
+    <div class="loading">Loading...</div>
+  {/if}
+  {#if $errorMessage}
+    <div class="error">{$errorMessage}</div>
+  {/if}
 </main>
