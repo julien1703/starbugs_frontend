@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import axios from 'axios';
-import { onMount } from 'svelte';
 
 let scene, camera, renderer, controls;
 
@@ -9,11 +8,10 @@ init();
 
 function init() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000); // Ensure the background is black
+    scene.background = new THREE.Color(0x000000);
     
-    // Create a camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000000000);
-    camera.position.set(0, 0, 0.00001); // Set initial position
+    camera.position.set(0, 0, 0.00001);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -22,14 +20,13 @@ function init() {
     controls = new OrbitControls(camera, renderer.domElement);
 
     fetchStars('leo');
+    window.addEventListener('resize', onWindowResize, false);
 }
-
 
 async function fetchStars(constellation) {
     try {
         const response = await axios.get(`https://api.julien-offray.de/constellation?constellation=${constellation}`);
         const { stars, connections } = response.data;
-        console.log(response.data);
         addStars(stars);
         animate();
     } catch (error) {
@@ -37,38 +34,31 @@ async function fetchStars(constellation) {
     }
 }
 
-
-async function addStars(stars) {
-    console.log(stars);
+function addStars(stars) {
     stars.forEach(star => {
-        let geometry;
-        geometry = new THREE.SphereGeometry(3, 24, 24);
-
-        const material = new THREE.MeshStandardMaterial( { color: 0xff0000});
-
+        const geometry = new THREE.SphereGeometry(3, 24, 24);
+        const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         const starMesh = new THREE.Mesh(geometry, material);
         starMesh.position.set(star.x0, star.y0, star.z0);
-
-        // if(in Sternzeichen drin) {
-        //     starMesh.userData.starData = {
-
-        //     }
-        
-        // }
         scene.add(starMesh);
     });
-    console.log("Stars added to scene");
-    let lookatPosition = new THREE.Vector3(
-        stars[0].x0,
-        stars[0].y0,
-        stars[0].z0
-    );
-    controls.target.set(lookatPosition);
-    controls.update();
+
+    const firstStar = stars[0];
+    if (firstStar) {
+        const lookatPosition = new THREE.Vector3(firstStar.x0, firstStar.y0, firstStar.z0);
+        controls.target.set(lookatPosition);
+        controls.update();
+    }
 }
 
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
