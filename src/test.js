@@ -11,7 +11,7 @@ function init() {
     scene.background = new THREE.Color(0x000000);
     
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000000000);
-    camera.position.set(0, 0, 10);
+    camera.position.set(0, 0, 0.00001);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -47,26 +47,13 @@ function addStars(stars) {
 
 function moveCameraToConstellation(stars) {
     if (stars.length === 0) return;
-
-    const boundingBox = new THREE.Box3();
-    stars.forEach(star => {
-        const starPosition = new THREE.Vector3(star.y0, star.z0, star.x0);
-        boundingBox.expandByPoint(starPosition);
-    });
-
-    const center = new THREE.Vector3();
-    boundingBox.getCenter(center);
-    const size = boundingBox.getSize(new THREE.Vector3());
-
-    const maxSize = Math.max(size.x, size.y, size.z);
-    const distance = maxSize * 1.5;
-
-    const direction = new THREE.Vector3(0, 0, 1);
-    const position = center.clone().add(direction.multiplyScalar(distance));
-
-    camera.position.copy(position);
-    controls.target.copy(center);
-    controls.update();
+    const firstStar = stars[0];
+    if (firstStar) {
+        const targetPosition = new THREE.Vector3(firstStar.y0, firstStar.z0, firstStar.x0);
+        controls.target = targetPosition;
+        camera.position.copy(targetPosition.clone().add(new THREE.Vector3(0.01, 0.01, 0.01)));
+        controls.update();
+    }
 }
 
 function animate() {
