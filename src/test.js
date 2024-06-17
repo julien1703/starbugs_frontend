@@ -28,6 +28,7 @@ async function fetchStars(constellation) {
         const response = await axios.get(`https://api.julien-offray.de/constellation?constellation=${constellation}`);
         const { stars, connections } = response.data;
         addStars(stars);
+        moveCameraToConstellation(stars);
         animate();
     } catch (error) {
         console.error("Error fetching star data:", error);
@@ -42,11 +43,15 @@ function addStars(stars) {
         starMesh.position.set(star.x0, star.y0, star.z0);
         scene.add(starMesh);
     });
+}
 
+function moveCameraToConstellation(stars) {
+    if (stars.length === 0) return;
     const firstStar = stars[0];
     if (firstStar) {
-        const lookatPosition = new THREE.Vector3(firstStar.x0, firstStar.y0, firstStar.z0);
-        controls.target.set(lookatPosition);
+        const targetPosition = new THREE.Vector3(firstStar.y0, firstStar.z0, firstStar.x0);
+        controls.target = targetPosition;
+        camera.position.copy(targetPosition.clone().add(new THREE.Vector3(0.01, 0.01, 0.01)));
         controls.update();
     }
 }

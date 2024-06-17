@@ -11,16 +11,29 @@
   let camera, scene, renderer, controls;
   let loading = writable(false);
   let errorMessage = writable('');
+  let constellations = [
+    { name: "Orion", abbreviation: "ori" },
+    { name: "Taurus", abbreviation: "tau" },
+    { name: "Gemini", abbreviation: "gem" },
+    { name: "Cancer", abbreviation: "cnc" },
+    { name: "Leo", abbreviation: "leo" },
+    { name: "Virgo", abbreviation: "vir" },
+    { name: "Libra", abbreviation: "lib" },
+    { name: "Scorpius", abbreviation: "sco" },
+    { name: "Sagittarius", abbreviation: "sgr" },
+    { name: "Capricornus", abbreviation: "cap" },
+    { name: "Aquarius", abbreviation: "aqr" },
+    { name: "Pisces", abbreviation: "psc" },
+  ];
 
   const maxMag = 8;
   const minRadius = 0.17;
   const maxRadius = 1587.37;
-  const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
-  const maxNewRadius = 0.3; // Maximalgröße für die Darstellung
+  const minNewRadius = 0.05; 
+  const maxNewRadius = 0.3;
   let lastRemovedStar = null;
   let selectedStar = null;
   let sunIgnored = false;
-
   let lineGroup = new THREE.Group();
 
   onMount(() => {
@@ -38,11 +51,11 @@
     camera.position.z = 0.0001;
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000); // Setzen Sie explizit eine Hintergrundfarbe
+    scene.background = new THREE.Color(0x000000); 
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
+    document.body.appendChild(renderer.domElement);
     controls = new OrbitControls(camera, renderer.domElement);
   }
 
@@ -51,7 +64,7 @@
     const url = `https://api.julien-offray.de/constellation?constellation=${constellation}`;
     try {
       const response = await axios.get(url);
-      scene.clear(); // Leert die Szene vor dem Hinzufügen neuer Sterne
+      scene.clear(); 
       selectedArray = constellation;
       const starsData = response.data.stars
         .filter(
@@ -73,6 +86,7 @@
           dec: star.dec,
         }));
       addStars(starsData);
+      moveCameraToConstellation(starsData);
       animate();
       loading.set(false);
     } catch (error) {
@@ -127,9 +141,20 @@
 
       const sphere = new THREE.Mesh(starGeometry, starMaterial);
       sphere.position.set(star.y, star.z, star.x);
-      sphere.userData.starData = { ...star }; // Daten anhängen
+      sphere.userData.starData = { ...star };
       scene.add(sphere);
     });
+  }
+
+  function moveCameraToConstellation(stars) {
+    if (stars.length === 0) return;
+    const firstStar = stars[0];
+    if (firstStar) {
+      const targetPosition = new THREE.Vector3(firstStar.y, firstStar.z, firstStar.x);
+      controls.target = targetPosition;
+      camera.position.copy(targetPosition.clone().add(new THREE.Vector3(0.01, 0.01, 0.01)));
+      controls.update();
+    }
   }
 
   function animate() {
@@ -183,14 +208,14 @@
 
   function getColorByCI(ci) {
     if (ci < 0)
-      return 0x9db4ff; // Blau
+      return 0x9db4ff;
     else if (ci < 0.5)
-      return 0xbcd2ff; // Hellblau
+      return 0xbcd2ff;
     else if (ci < 1.0)
-      return 0xfbfbfb; // Weiß
+      return 0xfbfbfb;
     else if (ci < 1.5)
-      return 0xfff4ea; // Gelblich
-    else return 0xffd2a1; // Orange/Rot
+      return 0xfff4ea;
+    else return 0xffd2a1;
   }
 
   function getIntensityByMag(mag) {
@@ -226,21 +251,6 @@
       minNew
     );
   }
-
-  const constellations = [
-    { name: "Orion", abbreviation: "ori" },
-    { name: "Taurus", abbreviation: "tau" },
-    { name: "Gemini", abbreviation: "gem" },
-    { name: "Cancer", abbreviation: "cnc" },
-    { name: "Leo", abbreviation: "leo" },
-    { name: "Virgo", abbreviation: "vir" },
-    { name: "Libra", abbreviation: "lib" },
-    { name: "Scorpius", abbreviation: "sco" },
-    { name: "Sagittarius", abbreviation: "sgr" },
-    { name: "Capricornus", abbreviation: "cap" },
-    { name: "Aquarius", abbreviation: "aqr" },
-    { name: "Pisces", abbreviation: "psc" },
-  ];
 
   let selectedArray;
   $: if (selectedArray) {
@@ -564,6 +574,7 @@
     display: flex;
     gap: 10px;
     z-index: 100;
+    flex-wrap: wrap;
   }
 
   button {
@@ -574,11 +585,12 @@
     border-radius: 4px;
     background-color: #444;
     color: white;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.3s;
   }
 
   button:hover {
     background-color: #666;
+    transform: scale(1.05);
   }
 
   .loading {
@@ -588,6 +600,7 @@
     transform: translate(-50%, -50%);
     font-size: 24px;
     color: white;
+    z-index: 100;
   }
 
   .error {
@@ -598,11 +611,15 @@
     padding: 10px;
     border-radius: 4px;
     color: white;
-    z-index: 10;
+    z-index: 100;
   }
 
   canvas {
     display: block;
+  }
+
+  main {
+    font-family: Arial, sans-serif;
   }
 </style>
 
