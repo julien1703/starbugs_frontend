@@ -61,7 +61,6 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
 
-    // controls = new OrbitControls(camera, renderer.domElement); // Auskommentiert für Zoom
 
     scene.add(lineGroup);
     scene.add(starGroup);
@@ -219,7 +218,6 @@
     requestAnimationFrame(animate);
     updateVisibility();
     renderer.render(scene, camera);
-    // controls.update(); // Auskommentiert für Zoom
   }
 
   function updateVisibility() {

@@ -17,7 +17,7 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    //controls = new OrbitControls(camera, renderer.domElement);
+
 
     fetchStars('leo');
     window.addEventListener('resize', onWindowResize, false);
