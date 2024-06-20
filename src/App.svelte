@@ -4,7 +4,7 @@
   import * as THREE from "three";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
   import { writable } from 'svelte/store';
-  
+
   let raycaster = new THREE.Raycaster();
   let mouse = new THREE.Vector2();
 
@@ -22,6 +22,7 @@
 
   let lineGroup = new THREE.Group();
   let starGroup = new THREE.Group();
+  let hitboxGroup = new THREE.Group(); // Gruppe für die Hitboxen
   let clear = false;
 
   const extraStarsCount = 5000; // Anzahl der zusätzlichen zufälligen Sterne
@@ -83,6 +84,7 @@
 
     scene.add(lineGroup);
     scene.add(starGroup);
+    scene.add(hitboxGroup); // Hitbox-Gruppe zur Szene hinzufügen
     animate();
   }
 
@@ -94,6 +96,7 @@
       if (clear) {
         lineGroup.clear();
         starGroup.clear();
+        hitboxGroup.clear(); // Hitbox-Gruppe leeren
       }
       selectedArray = constellation;
       const starsData = response.data.stars
@@ -177,6 +180,14 @@
       sphere.position.set(star.y, star.z, star.x);
       sphere.userData.starData = { ...star }; // Daten anhängen
       starGroup.add(sphere);
+
+      // Hinzufügen der unsichtbaren Hitbox
+      const hitboxGeometry = new THREE.SphereGeometry(1, 16, 16); // Größe der Hitbox
+      const hitboxMaterial = new THREE.MeshBasicMaterial({ visible: false });
+      const hitbox = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+      hitbox.position.set(star.y, star.z, star.x);
+      hitbox.userData.starData = { ...star }; // Daten anhängen
+      hitboxGroup.add(hitbox);
     });
   }
 
@@ -209,6 +220,14 @@
       const sphere = new THREE.Mesh(starGeometry, starMaterial);
       sphere.position.set(star.x, star.y, star.z);
       starGroup.add(sphere);
+
+      // Hinzufügen der unsichtbaren Hitbox
+      const hitboxGeometry = new THREE.SphereGeometry(1, 16, 16); // Größe der Hitbox
+      const hitboxMaterial = new THREE.MeshBasicMaterial({ visible: false });
+      const hitbox = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+      hitbox.position.set(star.x, star.y, star.z);
+      hitbox.userData.starData = { ...star }; // Daten anhängen
+      hitboxGroup.add(hitbox);
     }
   }
 
@@ -270,7 +289,7 @@
 
     raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObjects(starGroup.children);
+    const intersects = raycaster.intersectObjects(hitboxGroup.children);
 
     if (intersects.length > 0) {
       let firstObject = intersects[0].object;
@@ -325,8 +344,6 @@
       minNew
     );
   }
-
-
   let arrays = {
     leo: [
       { x: -69.8918888888889, y: 34.736444444444444, z: -42.151777777777774 },
