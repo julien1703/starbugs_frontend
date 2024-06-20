@@ -246,8 +246,7 @@
         end.y, end.z, end.x
       ]);
       geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-      const color = Math.floor(Math.random() * 0xffffff);
-      const material = new THREE.LineBasicMaterial({ color: color });
+      const material = new THREE.LineBasicMaterial({ color: 0xffffff }); // Farbe der Linie
       const line = new THREE.Line(geometry, material);
       lineGroup.add(line);
     }
