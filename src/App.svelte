@@ -40,6 +40,7 @@
     loadStars("psc");
     loadStars("cnc");
 
+    window.addEventListener('resize', onWindowResize);
   });
 
   function init() {
@@ -87,7 +88,6 @@
           dec: star.dec,
         }));
       addStars(starsData);
-      animate();
       loading.set(false);
     } catch (error) {
       console.error("Fehler beim Abrufen der Sterndaten:", error);
@@ -144,6 +144,8 @@
       sphere.userData.starData = { ...star }; // Daten anhängen
       scene.add(sphere);
     });
+
+    animate();
   }
 
   function animate() {
@@ -193,7 +195,14 @@
       }
     }
   }
+
   window.addEventListener("click", onMouseClick);
+
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
 
   function getColorByCI(ci) {
     if (ci < 0)
@@ -291,7 +300,6 @@
     lineGroup.add(line);
     scene.add(lineGroup);
   }
-
   let arrays = {
     leo: [
       { x: -69.8918888888889, y: 34.736444444444444, z: -42.151777777777774 },
