@@ -1,3 +1,4 @@
+console.log('Script loaded and running.');
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import axios from 'axios';
@@ -9,6 +10,8 @@ let mouse = new THREE.Vector2();
 init();
 
 function init() {
+    console.log('Script loaded and running.');
+
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
     
@@ -46,7 +49,7 @@ async function fetchStars(constellation) {
 function addStars(stars, constellation) {
     stars.forEach(star => {
         // Vergrößere die Geometrie der Sterne, um die Erkennungsfläche zu vergrößern
-        const geometry = new THREE.SphereGeometry(5, 24, 24);
+        const geometry = new THREE.SphereGeometry(10, 24, 24); // Erhöhe die Größe der Sterne
         const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         const starMesh = new THREE.Mesh(geometry, material);
         starMesh.position.set(star.x0, star.y0, star.z0);
