@@ -61,6 +61,7 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
 
+    // controls = new OrbitControls(camera, renderer.domElement); // Auskommentiert für Zoom
 
     scene.add(lineGroup);
     scene.add(starGroup);
@@ -218,6 +219,7 @@
     requestAnimationFrame(animate);
     updateVisibility();
     renderer.render(scene, camera);
+    // controls.update(); // Auskommentiert für Zoom
   }
 
   function updateVisibility() {
@@ -242,31 +244,6 @@
       }
     });
   }
-
-  function onMouseClick(event) {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-
-    const intersects = raycaster.intersectObjects(starGroup.children);
-
-    if (intersects.length > 0) {
-      let firstObject = intersects[0].object;
-      if (firstObject.userData.starData) {
-        console.log(firstObject.userData.starData);
-        if (lastRemovedStar != null) addStars([lastRemovedStar]);
-
-        lastRemovedStar = null;
-
-        selectedStar = {
-          ...firstObject.userData.starData,
-          object: firstObject,
-        };
-      }
-    }
-  }
-  window.addEventListener("click", onMouseClick);
 
   function getColorByCI(ci) {
     if (ci < 0)
@@ -363,6 +340,7 @@
     let line = new THREE.Line(geometry, material);
     lineGroup.add(line);
   }
+
 
 
   let arrays = {
