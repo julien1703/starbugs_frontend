@@ -353,8 +353,8 @@
       end.x,
     ]);
     geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-    let color = Math.floor(Math.random() * 0xffffff);
-    let material = new THREE.LineBasicMaterial({ color: color });
+    // let color = Math.floor(Math.random() * 0xffffff);
+    let material = new THREE.LineBasicMaterial({ color:  0xffffff});
     let line = new THREE.Line(geometry, material);
     lineGroup.add(line);
   }
