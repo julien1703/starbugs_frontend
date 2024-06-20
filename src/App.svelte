@@ -60,7 +60,8 @@
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
-    controls = new OrbitControls(camera, renderer.domElement);
+
+    // controls = new OrbitControls(camera, renderer.domElement); // Auskommentiert für Zoom
 
     scene.add(lineGroup);
     scene.add(starGroup);
@@ -218,32 +219,31 @@
     requestAnimationFrame(animate);
     updateVisibility();
     renderer.render(scene, camera);
-    controls.update();
+    // controls.update(); // Auskommentiert für Zoom
   }
 
   function updateVisibility() {
-  const frustum = new THREE.Frustum();
-  const cameraViewProjectionMatrix = new THREE.Matrix4();
+    const frustum = new THREE.Frustum();
+    const cameraViewProjectionMatrix = new THREE.Matrix4();
 
-  cameraViewProjectionMatrix.multiplyMatrices(
-    camera.projectionMatrix,
-    camera.matrixWorldInverse
-  );
-  frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
+    cameraViewProjectionMatrix.multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse
+    );
+    frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
 
-  scene.traverse(function (object) {
-    if (object instanceof THREE.Mesh) {
-      const wasVisible = object.visible;
-      object.visible = frustum.intersectsObject(object);
-      if (object.userData.starData && object.userData.starData.id !== undefined) {
-        if (object.visible !== wasVisible) {
-          console.log(`Visibility changed for star: ${object.userData.starData.id}, now visible: ${object.visible}`);
+    scene.traverse(function (object) {
+      if (object instanceof THREE.Mesh) {
+        const wasVisible = object.visible;
+        object.visible = frustum.intersectsObject(object);
+        if (object.userData.starData && object.userData.starData.id !== undefined) {
+          if (object.visible !== wasVisible) {
+            console.log(`Visibility changed for star: ${object.userData.starData.id}, now visible: ${object.visible}`);
+          }
         }
       }
-    }
-  });
-}
-
+    });
+  }
 
   function onMouseClick(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -365,6 +365,7 @@
     let line = new THREE.Line(geometry, material);
     lineGroup.add(line);
   }
+
 
   let arrays = {
     leo: [
@@ -1561,4 +1562,3 @@
     <div class="error">{$errorMessage}</div>
   {/if}
 </main>
-
