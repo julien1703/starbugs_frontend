@@ -26,6 +26,9 @@ function init() {
 
     // Event-Listener für Maus-Klicks hinzufügen
     renderer.domElement.addEventListener('click', onMouseClick, false);
+
+    // Test-Log, um sicherzustellen, dass der Event-Listener registriert wird
+    console.log('Event listener registered for mouse clicks.');
 }
 
 async function fetchStars(constellation) {
@@ -42,7 +45,8 @@ async function fetchStars(constellation) {
 
 function addStars(stars, constellation) {
     stars.forEach(star => {
-        const geometry = new THREE.SphereGeometry(3, 24, 24);
+        // Vergrößere die Geometrie der Sterne, um die Erkennungsfläche zu vergrößern
+        const geometry = new THREE.SphereGeometry(5, 24, 24);
         const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         const starMesh = new THREE.Mesh(geometry, material);
         starMesh.position.set(star.x0, star.y0, star.z0);
@@ -75,6 +79,9 @@ function onWindowResize() {
 }
 
 function onMouseClick(event) {
+    // Test-Log, um sicherzustellen, dass der Event-Listener funktioniert
+    console.log('Mouse click detected.');
+
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -86,6 +93,10 @@ function onMouseClick(event) {
         const firstObject = intersects[0].object;
         if (firstObject.userData.constellation) {
             console.log(`Clicked on constellation: ${firstObject.userData.constellation}`);
+        } else {
+            console.log('Clicked on an object without constellation data.');
         }
+    } else {
+        console.log('No intersections detected.');
     }
 }
