@@ -22,7 +22,10 @@
   let sunIgnored = false;
 
   let lineGroup = new THREE.Group();
+  let starGroup = new THREE.Group();
   let clear = false;
+
+  const extraStarsCount = 5000; // Anzahl der zusätzlichen zufälligen Sterne
 
   onMount(() => {
     init();
@@ -38,8 +41,8 @@
     loadStars("cap");
     loadStars("aqr");
     loadStars("psc");
-    loadStars("cnc");
-
+    loadStars("ari");
+    addExtraStars(extraStarsCount); // Füge zusätzliche zufällige Sterne hinzu
   });
 
   function init() {
@@ -58,6 +61,9 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
     controls = new OrbitControls(camera, renderer.domElement);
+
+    scene.add(lineGroup);
+    scene.add(starGroup);
   }
 
   async function loadStars(constellation) {
@@ -65,7 +71,10 @@
     const url = `https://api.julien-offray.de/constellation?constellation=${constellation}`;
     try {
       const response = await axios.get(url);
-      if (clear) scene.clear(); // Leert die Szene vor dem Hinzufügen neuer Sterne
+      if (clear) {
+        lineGroup.clear();
+        starGroup.clear();
+      }
       selectedArray = constellation;
       const starsData = response.data.stars
         .filter(
@@ -87,6 +96,9 @@
           dec: star.dec,
         }));
       addStars(starsData);
+      if (arrays[selectedArray]) {
+        addConstellationLines(arrays[selectedArray]);
+      }
       animate();
       loading.set(false);
     } catch (error) {
@@ -140,10 +152,66 @@
       });
 
       const sphere = new THREE.Mesh(starGeometry, starMaterial);
+
+      // Skalierung der Position der Sterne
       sphere.position.set(star.y, star.z, star.x);
       sphere.userData.starData = { ...star }; // Daten anhängen
-      scene.add(sphere);
+      starGroup.add(sphere);
     });
+  }
+
+  function addExtraStars(count) {
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() - 0.5) * 200; // Bereich erweitern
+      const y = (Math.random() - 0.5) * 200;
+      const z = (Math.random() - 0.5) * 200;
+
+      const star = {
+        x: x,
+        y: y,
+        z: z,
+        id: `extra-${i}`,
+        absmag: Math.random() * 10 - 5,
+        ci: Math.random() * 2 - 1,
+        mag: Math.random() * 10,
+        dist: Math.random() * 2000,
+      };
+
+      let starGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+      const color = getColorByCI(star.ci);
+      const intensity = getIntensityByMag(star.mag);
+      const starMaterial = new THREE.MeshStandardMaterial({
+        color: color,
+        emissive: color,
+        emissiveIntensity: intensity,
+      });
+
+      const sphere = new THREE.Mesh(starGeometry, starMaterial);
+      sphere.position.set(star.x, star.y, star.z);
+      starGroup.add(sphere);
+    }
+  }
+
+  function addConstellationLines(stars) {
+    if (stars.length === 0) {
+      console.error("Keine gültigen Sterndaten verfügbar.");
+      return;
+    }
+
+    for (let i = 1; i < stars.length - 1; i++) {
+      const start = stars[i];
+      const end = stars[i + 1];
+      const geometry = new THREE.BufferGeometry();
+      const vertices = new Float32Array([
+        start.y, start.z, start.x,
+        end.y, end.z, end.x
+      ]);
+      geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+      const color = Math.floor(Math.random() * 0xffffff);
+      const material = new THREE.LineBasicMaterial({ color: color });
+      const line = new THREE.Line(geometry, material);
+      lineGroup.add(line);
+    }
   }
 
   function animate() {
@@ -163,7 +231,7 @@
     );
     frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
 
-    scene.traverse(function (object) {
+    starGroup.traverse(function (object) {
       if (object instanceof THREE.Mesh) {
         object.visible = frustum.intersectsObject(object);
       }
@@ -176,7 +244,7 @@
 
     raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObjects(scene.children);
+    const intersects = raycaster.intersectObjects(starGroup.children);
 
     if (intersects.length > 0) {
       let firstObject = intersects[0].object;
@@ -289,7 +357,6 @@
     let material = new THREE.LineBasicMaterial({ color: color });
     let line = new THREE.Line(geometry, material);
     lineGroup.add(line);
-    scene.add(lineGroup);
   }
 
   let arrays = {
