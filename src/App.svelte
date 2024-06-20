@@ -4,7 +4,7 @@
   import * as THREE from "three";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
   import { writable } from 'svelte/store';
-
+  
   let raycaster = new THREE.Raycaster();
   let mouse = new THREE.Vector2();
 
@@ -83,6 +83,7 @@
 
     scene.add(lineGroup);
     scene.add(starGroup);
+    animate();
   }
 
   async function loadStars(constellation) {
@@ -119,7 +120,6 @@
       if (arrays[selectedArray]) {
         addConstellationLines(arrays[selectedArray]);
       }
-      animate();
       loading.set(false);
     } catch (error) {
       console.error("Fehler beim Abrufen der Sterndaten:", error);
@@ -325,7 +325,6 @@
       minNew
     );
   }
-
 
 
   let arrays = {
