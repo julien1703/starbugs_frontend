@@ -1474,28 +1474,7 @@
 
 <style>
   .buttons {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    z-index: 100;
-  }
-
-  button {
-    padding: 10px;
-    font-size: 14px;
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
-    background-color: #444;
-    color: white;
-    transition: background-color 0.3s;
-  }
-
-  button:hover {
-    background-color: #666;
+    display: none; /* Buttons ausblenden */
   }
 
   .loading {
@@ -1524,13 +1503,6 @@
 </style>
 
 <main>
-  <div class="buttons">
-    {#each constellations as constellation}
-      <button on:click={() => {clear = true; loadStars(constellation.abbreviation)}}>
-        {constellation.name}
-      </button>
-    {/each}
-  </div>
   {#if $loading}
     <div class="loading">Loading...</div>
   {/if}
