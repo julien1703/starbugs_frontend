@@ -17,8 +17,7 @@
   const maxRadius = 1587.37;
   const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
   const maxNewRadius = 0.3; // Maximalgröße für die Darstellung
-  let lastRemovedStar = null;
-  let selectedStar = null;
+  let selectedArray;
   let sunIgnored = false;
 
   let lineGroup = new THREE.Group();
@@ -26,6 +25,22 @@
   let clear = false;
 
   const extraStarsCount = 5000; // Anzahl der zusätzlichen zufälligen Sterne
+
+  const constellations = [
+    { name: "Orion", abbreviation: "ori" },
+    { name: "Taurus", abbreviation: "tau" },
+    { name: "Gemini", abbreviation: "gem" },
+    { name: "Cancer", abbreviation: "cnc" },
+    { name: "Leo", abbreviation: "leo" },
+    { name: "Virgo", abbreviation: "vir" },
+    { name: "Libra", abbreviation: "lib" },
+    { name: "Scorpius", abbreviation: "sco" },
+    { name: "Sagittarius", abbreviation: "sgr" },
+    { name: "Capricornus", abbreviation: "cap" },
+    { name: "Aquarius", abbreviation: "aqr" },
+    { name: "Pisces", abbreviation: "psc" },
+    { name: "Aries", abbreviation: "ari" }
+  ];
 
   onMount(() => {
     init();
@@ -43,6 +58,9 @@
     loadStars("psc");
     loadStars("ari");
     addExtraStars(extraStarsCount); // Füge zusätzliche zufällige Sterne hinzu
+
+    // Event-Listener für Maus-Klicks hinzufügen
+    renderer.domElement.addEventListener("click", onMouseClick);
   });
 
   function init() {
@@ -61,7 +79,7 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
 
-    // controls = new OrbitControls(camera, renderer.domElement); // Auskommentiert für Zoom
+    controls = new OrbitControls(camera, renderer.domElement);
 
     scene.add(lineGroup);
     scene.add(starGroup);
@@ -95,6 +113,7 @@
           dist: star.dist,
           ra: star.ra,
           dec: star.dec,
+          constellation: constellation // Hinzufügen des Sternbilds
         }));
       addStars(starsData);
       if (arrays[selectedArray]) {
@@ -219,7 +238,7 @@
     requestAnimationFrame(animate);
     updateVisibility();
     renderer.render(scene, camera);
-    // controls.update(); // Auskommentiert für Zoom
+    controls.update();
   }
 
   function updateVisibility() {
@@ -238,11 +257,27 @@
         object.visible = frustum.intersectsObject(object);
         if (object.userData.starData && object.userData.starData.id !== undefined) {
           if (object.visible !== wasVisible) {
-            console.log(`Visibility changed for star: ${object.userData.starData.id}, now visible: ${object.visible}`);
+            // console.log(`Visibility changed for star: ${object.userData.starData.id}, now visible: ${object.visible}`);
           }
         }
       }
     });
+  }
+
+  function onMouseClick(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(starGroup.children);
+
+    if (intersects.length > 0) {
+      let firstObject = intersects[0].object;
+      if (firstObject.userData.starData) {
+        console.log(`Clicked on constellation: ${firstObject.userData.starData.constellation}`);
+      }
+    }
   }
 
   function getColorByCI(ci) {
@@ -289,56 +324,6 @@
         (maxNew - minNew) +
       minNew
     );
-  }
-
-  const constellations = [
-    { name: "Orion", abbreviation: "ori" },
-    { name: "Taurus", abbreviation: "tau" },
-    { name: "Gemini", abbreviation: "gem" },
-    { name: "Cancer", abbreviation: "cnc" },
-    { name: "Leo", abbreviation: "leo" },
-    { name: "Virgo", abbreviation: "vir" },
-    { name: "Libra", abbreviation: "lib" },
-    { name: "Scorpius", abbreviation: "sco" },
-    { name: "Sagittarius", abbreviation: "sgr" },
-    { name: "Capricornus", abbreviation: "cap" },
-    { name: "Aquarius", abbreviation: "aqr" },
-    { name: "Pisces", abbreviation: "psc" },
-    { name: "Aries", abbreviation: "ari" }
-  ];
-
-  let selectedArray;
-  $: if (selectedArray) {
-    updateLines(selectedArray);
-  }
-
-  function updateLines(arrayName) {
-    if (clear) lineGroup.clear();
-    let array = arrays[arrayName];
-    if (array) {
-      for (let i = 1; i < array.length - 1; i++) {
-        addLine(array[i], array[i + 1], array[0]);
-      }
-    } else {
-      console.error("Unbekanntes Array:", arrayName);
-    }
-  }
-
-  function addLine(start, end, center) {
-    let geometry = new THREE.BufferGeometry();
-    let vertices = new Float32Array([
-      start.y,
-      start.z,
-      start.x,
-      end.y,
-      end.z,
-      end.x,
-    ]);
-    geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-    // let color = Math.floor(Math.random() * 0xffffff);
-    let material = new THREE.LineBasicMaterial({ color:  0xffffff});
-    let line = new THREE.Line(geometry, material);
-    lineGroup.add(line);
   }
 
 

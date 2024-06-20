@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import axios from 'axios';
 
 let scene, camera, renderer, controls;
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2();
 
 init();
 
@@ -17,17 +19,20 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-
+    controls = new OrbitControls(camera, renderer.domElement);
 
     fetchStars('leo');
     window.addEventListener('resize', onWindowResize, false);
+
+    // Event-Listener für Maus-Klicks hinzufügen
+    renderer.domElement.addEventListener('click', onMouseClick, false);
 }
 
 async function fetchStars(constellation) {
     try {
         const response = await axios.get(`https://api.julien-offray.de/constellation?constellation=${constellation}`);
         const { stars, connections } = response.data;
-        addStars(stars);
+        addStars(stars, constellation);
         moveCameraToConstellation(stars);
         animate();
     } catch (error) {
@@ -35,12 +40,13 @@ async function fetchStars(constellation) {
     }
 }
 
-function addStars(stars) {
+function addStars(stars, constellation) {
     stars.forEach(star => {
         const geometry = new THREE.SphereGeometry(3, 24, 24);
         const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         const starMesh = new THREE.Mesh(geometry, material);
         starMesh.position.set(star.x0, star.y0, star.z0);
+        starMesh.userData.constellation = constellation; // Sternbildinformationen hinzufügen
         scene.add(starMesh);
     });
 }
@@ -66,4 +72,20 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onMouseClick(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(scene.children);
+
+    if (intersects.length > 0) {
+        const firstObject = intersects[0].object;
+        if (firstObject.userData.constellation) {
+            console.log(`Clicked on constellation: ${firstObject.userData.constellation}`);
+        }
+    }
 }
