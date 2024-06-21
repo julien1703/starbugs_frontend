@@ -4,6 +4,13 @@
   import * as THREE from "three";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
   import { writable } from 'svelte/store';
+  import Router from 'svelte-spa-router';
+  import Starsign from './routes/[starsign].svelte';
+  import { push } from "svelte-spa-router";
+
+  const routes = {
+    '/:starsign': Starsign
+  };
 
   let raycaster = new THREE.Raycaster();
   let mouse = new THREE.Vector2();
@@ -25,7 +32,7 @@
   let lineGroup = new THREE.Group();
   let starGroup = new THREE.Group();
   let hitboxGroup = new THREE.Group(); // Gruppe für die Hitboxen
-  let backgroundStarGroup = new THREE.Group(); // Gruppe für die Hintergrundsterne
+  let backgroundStarGroup = new THREE.Group(); // Hintergrundsterne zur Szene hinzufügen
   let clear = false;
 
   const performanceMode = writable(false);
@@ -138,7 +145,7 @@
         addConstellationLines(arrays[selectedArray]);
       }
       loading.set(false);
-      console.log(`Loaded ${starsData.length} stars for ${constellation} in ${$performanceMode ? 'full' : 'performance'} mode.`);
+      // console.log(`Loaded ${starsData.length} stars for ${constellation} in ${$performanceMode ? 'full' : 'performance'} mode.`);
     } catch (error) {
       console.error("Fehler beim Abrufen der Sterndaten:", error);
       errorMessage.set('Fehler beim Laden der Sterne');
@@ -298,20 +305,22 @@
   }
 
   function onMouseClick(event) {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    raycaster.setFromCamera(mouse, camera);
+  raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObjects(hitboxGroup.children);
+  const intersects = raycaster.intersectObjects(hitboxGroup.children);
 
-    if (intersects.length > 0) {
-      let firstObject = intersects[0].object;
-      if (firstObject.userData.starData) {
-        console.log(`Clicked on constellation: ${firstObject.userData.starData.constellation}`);
-      }
+  if (intersects.length > 0) {
+    let firstObject = intersects[0].object;
+    if (firstObject.userData.starData) {
+      const constellation = firstObject.userData.starData.constellation;
+      push(`/${constellation}`);
     }
   }
+}
+
 
   function getColorByCI(ci) {
     if (ci < 0)
@@ -1579,6 +1588,7 @@
   <div class="toggle-button" on:click={() => performanceMode.set(!$performanceMode)}>
     Toggle Performance Mode
   </div>
+  <Router {routes} />
   {#if $loading}
     <div class="loading">Loading...</div>
   {/if}
