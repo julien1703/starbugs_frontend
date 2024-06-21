@@ -18,16 +18,18 @@
   const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
   const maxNewRadius = 0.3; // Maximalgröße für die Darstellung
   const defaultMaxStars = 50; // Maximale Anzahl von Sternen im Performance-Modus
+  const extraStarsCount = 5000; // Anzahl der zusätzlichen zufälligen Sterne im Performance-Modus
   let selectedArray;
   let sunIgnored = false;
 
   let lineGroup = new THREE.Group();
   let starGroup = new THREE.Group();
   let hitboxGroup = new THREE.Group(); // Gruppe für die Hitboxen
+  let backgroundStarGroup = new THREE.Group(); // Gruppe für die Hintergrundsterne
   let clear = false;
 
   const performanceMode = writable(false);
-  
+
   const constellations = [
     { name: "Orion", abbreviation: "ori" },
     { name: "Taurus", abbreviation: "tau" },
@@ -55,8 +57,10 @@
   // Reaktivität für den Performance-Modus
   $: if ($performanceMode) {
     console.log('Performance Mode is ON');
+    addExtraStars(extraStarsCount);
   } else {
     console.log('Performance Mode is OFF');
+    backgroundStarGroup.clear();
   }
 
   $: performanceMode.subscribe((value) => {
@@ -85,6 +89,7 @@
     scene.add(lineGroup);
     scene.add(starGroup);
     scene.add(hitboxGroup); // Hitbox-Gruppe zur Szene hinzufügen
+    scene.add(backgroundStarGroup); // Hintergrundsterne zur Szene hinzufügen
     animate();
   }
 
@@ -103,6 +108,7 @@
         lineGroup.clear();
         starGroup.clear();
         hitboxGroup.clear(); // Hitbox-Gruppe leeren
+        backgroundStarGroup.clear(); // Hintergrundsterne leeren
       }
       selectedArray = constellation;
       const starsData = response.data.stars
@@ -221,6 +227,46 @@
     }
   }
 
+  function addExtraStars(count) {
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() - 0.5) * 200; // Bereich erweitern
+      const y = (Math.random() - 0.5) * 200;
+      const z = (Math.random() - 0.5) * 200;
+
+      const star = {
+        x: x,
+        y: y,
+        z: z,
+        id: `extra-${i}`,
+        absmag: Math.random() * 10 - 5,
+        ci: Math.random() * 2 - 1,
+        mag: Math.random() * 10,
+        dist: Math.random() * 2000,
+      };
+
+      let starGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+      const color = getColorByCI(star.ci);
+      const intensity = getIntensityByMag(star.mag);
+      const starMaterial = new THREE.MeshStandardMaterial({
+        color: color,
+        emissive: color,
+        emissiveIntensity: intensity,
+      });
+
+      const sphere = new THREE.Mesh(starGeometry, starMaterial);
+      sphere.position.set(star.x, star.y, star.z);
+      backgroundStarGroup.add(sphere);
+
+      // Hinzufügen der unsichtbaren Hitbox
+      const hitboxGeometry = new THREE.SphereGeometry(1, 16, 16); // Größe der Hitbox
+      const hitboxMaterial = new THREE.MeshBasicMaterial({ visible: false });
+      const hitbox = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+      hitbox.position.set(star.x, star.y, star.z);
+      hitbox.userData.starData = { ...star }; // Daten anhängen
+      hitboxGroup.add(hitbox);
+    }
+  }
+
   function animate() {
     requestAnimationFrame(animate);
     updateVisibility();
@@ -319,6 +365,7 @@
     lineGroup.clear();
     starGroup.clear();
     hitboxGroup.clear();
+    backgroundStarGroup.clear();
     loadAllConstellations();
   }
   let arrays = {
