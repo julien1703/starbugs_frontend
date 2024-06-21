@@ -17,6 +17,7 @@
   const maxRadius = 1587.37;
   const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
   const maxNewRadius = 0.3; // Maximalgröße für die Darstellung
+  const maxStars = 100; // Maximale Anzahl von Sternen pro Sternbild
   let selectedArray;
   let sunIgnored = false;
 
@@ -115,7 +116,8 @@
           ra: star.ra,
           dec: star.dec,
           constellation: constellation // Hinzufügen des Sternbilds
-        }));
+        }))
+        .slice(0, maxStars);
       addStars(starsData);
       if (arrays[selectedArray]) {
         addConstellationLines(arrays[selectedArray]);
