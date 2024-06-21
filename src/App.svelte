@@ -25,8 +25,6 @@
   let hitboxGroup = new THREE.Group(); // Gruppe für die Hitboxen
   let clear = false;
 
-  const extraStarsCount = 5000; // Anzahl der zusätzlichen zufälligen Sterne
-
   const constellations = [
     { name: "Orion", abbreviation: "ori" },
     { name: "Taurus", abbreviation: "tau" },
@@ -58,7 +56,6 @@
     loadStars("aqr");
     loadStars("psc");
     loadStars("ari");
-    addExtraStars(extraStarsCount); // Füge zusätzliche zufällige Sterne hinzu
 
     // Event-Listener für Maus-Klicks hinzufügen
     renderer.domElement.addEventListener("click", onMouseClick);
@@ -189,46 +186,6 @@
       hitbox.userData.starData = { ...star }; // Daten anhängen
       hitboxGroup.add(hitbox);
     });
-  }
-
-  function addExtraStars(count) {
-    for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * 200; // Bereich erweitern
-      const y = (Math.random() - 0.5) * 200;
-      const z = (Math.random() - 0.5) * 200;
-
-      const star = {
-        x: x,
-        y: y,
-        z: z,
-        id: `extra-${i}`,
-        absmag: Math.random() * 10 - 5,
-        ci: Math.random() * 2 - 1,
-        mag: Math.random() * 10,
-        dist: Math.random() * 2000,
-      };
-
-      let starGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-      const color = getColorByCI(star.ci);
-      const intensity = getIntensityByMag(star.mag);
-      const starMaterial = new THREE.MeshStandardMaterial({
-        color: color,
-        emissive: color,
-        emissiveIntensity: intensity,
-      });
-
-      const sphere = new THREE.Mesh(starGeometry, starMaterial);
-      sphere.position.set(star.x, star.y, star.z);
-      starGroup.add(sphere);
-
-      // Hinzufügen der unsichtbaren Hitbox
-      const hitboxGeometry = new THREE.SphereGeometry(1, 16, 16); // Größe der Hitbox
-      const hitboxMaterial = new THREE.MeshBasicMaterial({ visible: false });
-      const hitbox = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
-      hitbox.position.set(star.x, star.y, star.z);
-      hitbox.userData.starData = { ...star }; // Daten anhängen
-      hitboxGroup.add(hitbox);
-    }
   }
 
   function addConstellationLines(stars) {
@@ -388,10 +345,50 @@
     ],
     ari: [
       { x: 26.385749999999998, y: 17.72025, z: 13.57625 },
-      { _id: '663b7e1c2bdcc11befd4a1a5', x: 41.77, y: 22.568, z: 16.62, absmag: 0.372, mag: 3.88, dist: 50.3018, id: 142805, ci: -0.047},
-      { _id: '663b7e1c2bdcc11befd4a24c', x: 14.753, y: 8.063, z: 6.389, absmag: 1.365, mag: 2.64, dist: 17.9856, id: 144249, ci: 0.165},
-      { _id: '663b7e1c2bdcc11befd4ab7b', x: 15.732, y: 9.752, z: 8.034, absmag: 0.486, mag: 2.01, dist: 20.1776, id: 160205, ci: 1.151},
-      { _id: '663b7e1e2bdcc11befd4c94e', x: 33.288, y: 30.498, z: 23.262, absmag: 0.081, mag: 3.61, dist: 50.7872, id: 213523, ci: -0.1}
+      {
+        _id: "663b7e1c2bdcc11befd4a1a5",
+        x: 41.77,
+        y: 22.568,
+        z: 16.62,
+        absmag: 0.372,
+        mag: 3.88,
+        dist: 50.3018,
+        id: 142805,
+        ci: -0.047,
+      },
+      {
+        _id: "663b7e1c2bdcc11befd4a24c",
+        x: 14.753,
+        y: 8.063,
+        z: 6.389,
+        absmag: 1.365,
+        mag: 2.64,
+        dist: 17.9856,
+        id: 144249,
+        ci: 0.165,
+      },
+      {
+        _id: "663b7e1c2bdcc11befd4ab7b",
+        x: 15.732,
+        y: 9.752,
+        z: 8.034,
+        absmag: 0.486,
+        mag: 2.01,
+        dist: 20.1776,
+        id: 160205,
+        ci: 1.151,
+      },
+      {
+        _id: "663b7e1e2bdcc11befd4c94e",
+        x: 33.288,
+        y: 30.498,
+        z: 23.262,
+        absmag: 0.081,
+        mag: 3.61,
+        dist: 50.7872,
+        id: 213523,
+        ci: -0.1,
+      },
     ],
     aqr: [
       {
@@ -875,7 +872,7 @@
       {
         x: -48.40464705882353,
         y: -16.85235294117647,
-        z: -1.2731176470588232
+        z: -1.2731176470588232,
       },
       {
         _id: "663b7e3c2bdcc11befd74ae6",
@@ -1052,7 +1049,7 @@
       {
         x: -30.863166666666668,
         y: -38.12066666666667,
-        z: -14.967333333333334
+        z: -14.967333333333334,
       },
       {
         _id: "663b7e3f2bdcc11befd781cb",
@@ -1466,11 +1463,17 @@
     //     z: -63.389,
     //   },
     // ]
-    
-
   };
-
 </script>
+
+<main>
+  {#if $loading}
+    <div class="loading">Loading...</div>
+  {/if}
+  {#if $errorMessage}
+    <div class="error">{$errorMessage}</div>
+  {/if}
+</main>
 
 <style>
   .buttons {
@@ -1501,12 +1504,3 @@
     display: block;
   }
 </style>
-
-<main>
-  {#if $loading}
-    <div class="loading">Loading...</div>
-  {/if}
-  {#if $errorMessage}
-    <div class="error">{$errorMessage}</div>
-  {/if}
-</main>
