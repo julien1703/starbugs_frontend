@@ -17,7 +17,7 @@
   const maxRadius = 1587.37;
   const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
   const maxNewRadius = 0.3; // Maximalgröße für die Darstellung
-  const maxStars = 100; // Maximale Anzahl von Sternen pro Sternbild
+  const defaultMaxStars = 50; // Maximale Anzahl von Sternen im Performance-Modus
   let selectedArray;
   let sunIgnored = false;
 
@@ -26,6 +26,8 @@
   let hitboxGroup = new THREE.Group(); // Gruppe für die Hitboxen
   let clear = false;
 
+  const performanceMode = writable(false);
+  
   const constellations = [
     { name: "Orion", abbreviation: "ori" },
     { name: "Taurus", abbreviation: "tau" },
@@ -44,22 +46,22 @@
 
   onMount(() => {
     init();
-    loadStars("ori");
-    loadStars("tau");
-    loadStars("gem");
-    loadStars("cnc");
-    loadStars("leo");
-    loadStars("vir");
-    loadStars("lib");
-    loadStars("sco");
-    loadStars("sgr");
-    loadStars("cap");
-    loadStars("aqr");
-    loadStars("psc");
-    loadStars("ari");
+    loadAllConstellations();
 
     // Event-Listener für Maus-Klicks hinzufügen
     renderer.domElement.addEventListener("click", onMouseClick);
+  });
+
+  // Reaktivität für den Performance-Modus
+  $: if ($performanceMode) {
+    console.log('Performance Mode is ON');
+  } else {
+    console.log('Performance Mode is OFF');
+  }
+
+  $: performanceMode.subscribe((value) => {
+    console.log(`Performance Mode changed: ${value ? 'ON' : 'OFF'}`);
+    refreshStars();
   });
 
   function init() {
@@ -84,6 +86,12 @@
     scene.add(starGroup);
     scene.add(hitboxGroup); // Hitbox-Gruppe zur Szene hinzufügen
     animate();
+  }
+
+  function loadAllConstellations() {
+    for (const constellation of constellations) {
+      loadStars(constellation.abbreviation);
+    }
   }
 
   async function loadStars(constellation) {
@@ -117,12 +125,14 @@
           dec: star.dec,
           constellation: constellation // Hinzufügen des Sternbilds
         }))
-        .slice(0, maxStars);
+        .slice(0, $performanceMode ? undefined : defaultMaxStars); // Begrenzen der Anzahl der Sterne
+
       addStars(starsData);
       if (arrays[selectedArray]) {
         addConstellationLines(arrays[selectedArray]);
       }
       loading.set(false);
+      console.log(`Loaded ${starsData.length} stars for ${constellation} in ${$performanceMode ? 'full' : 'performance'} mode.`);
     } catch (error) {
       console.error("Fehler beim Abrufen der Sterndaten:", error);
       errorMessage.set('Fehler beim Laden der Sterne');
@@ -301,6 +311,15 @@
         (maxNew - minNew) +
       minNew
     );
+  }
+
+  // Refresh function to reload the stars based on performance mode
+  function refreshStars() {
+    console.log("Refreshing stars based on performance mode.");
+    lineGroup.clear();
+    starGroup.clear();
+    hitboxGroup.clear();
+    loadAllConstellations();
   }
   let arrays = {
     leo: [
@@ -1468,15 +1487,6 @@
   };
 </script>
 
-<main>
-  {#if $loading}
-    <div class="loading">Loading...</div>
-  {/if}
-  {#if $errorMessage}
-    <div class="error">{$errorMessage}</div>
-  {/if}
-</main>
-
 <style>
   .buttons {
     display: none; /* Buttons ausblenden */
@@ -1505,4 +1515,27 @@
   canvas {
     display: block;
   }
+
+  .toggle-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px;
+    background: #444;
+    color: white;
+    cursor: pointer;
+    z-index: 100;
+  }
 </style>
+
+<main>
+  <div class="toggle-button" on:click={() => performanceMode.set(!$performanceMode)}>
+    Toggle Performance Mode
+  </div>
+  {#if $loading}
+    <div class="loading">Loading...</div>
+  {/if}
+  {#if $errorMessage}
+    <div class="error">{$errorMessage}</div>
+  {/if}
+</main>
