@@ -4,7 +4,7 @@
   import axios from "axios";
 
   let starsign = "";
-  let apiKey = "";
+  let description = "";
 
   onMount(async () => {
     const hashFragment = window.location.hash.substring(1);
@@ -12,13 +12,15 @@
       starsign = fragment;
     });
 
-    // API-Schlüssel vom Backend abrufen
+    // Text basierend auf dem Sternzeichen generieren
     try {
-      const response = await axios.get('https://api.julien-offray.de/get-api-key');
-      apiKey = response.data.apiKey;
-      console.log("API Key:", apiKey);
+      const textResponse = await axios.post('https://api.julien-offray.de/api/generate-text', {
+        starsign: starsign
+      });
+      description = textResponse.data.text;
     } catch (error) {
-      console.error("Fehler beim Abrufen des API-Schlüssels:", error);
+      console.error("Fehler beim Generieren des Textes:", error);
+      description = "Es gab einen Fehler bei der Textgenerierung.";
     }
 
     console.log(hashFragment);
@@ -29,4 +31,5 @@
 <main>
   <button on:click={() => {push("/")}}>Button</button>
   <h1>Hallo, du hast auf das Sternzeichen {starsign} geklickt</h1>
+  <p>{description}</p>
 </main>
