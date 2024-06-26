@@ -2,9 +2,20 @@
   import { push } from "svelte-spa-router";
   import { onMount } from "svelte";
   import axios from "axios";
+  import * as THREE from "three";
+  import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+  import { arrays } from "./components/arrays.js";
 
   let starsign = "";
   let description = "";
+  let imagePath = "";
+  let camera, scene, renderer, controls;
+  let lineGroup = new THREE.Group();
+  const maxMag = 8;
+  const minRadius = 0.17;
+  const maxRadius = 1587.37;
+  const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
+  const maxNewRadius = 0.3; 
 
   onMount(async () => {
     const hashFragment = window.location.hash.substring(1);
@@ -23,13 +34,278 @@
       description = "Es gab einen Fehler bei der Textgenerierung.";
     }
 
-    console.log(hashFragment);
-    console.log(starsign);
+    console.log(`Hash Fragment: ${hashFragment}`);
+    console.log(`Sternzeichen: ${starsign}`);
+
+    // Setze den Pfad zum Bild
+    imagePath = `.../Sternbilder/${starsign}.webp`;
+    console.log(`Bildpfad: ${imagePath}`);
+    init();
+    getConstellationStars(starsign).then((stars) => {
+      addStars(stars);
+      addConstellationLines(stars);
+      scene.add(lineGroup);
+    });
   });
+
+  function init() {
+    camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      300
+    );
+    camera.position.z = 0.0001;
+
+    scene = new THREE.Scene();
+
+    // Hintergrundbild laden
+    const loader = new THREE.ImageLoader();
+    loader.load(
+      imagePath,
+      function (image) {
+        const texture = new THREE.CanvasTexture(image);
+        scene.background = texture;
+      },
+      undefined,
+      function (err) {
+        console.error(`Fehler beim Laden des Bildes: ${imagePath}`, err);
+      }
+    );
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
+
+    controls = new OrbitControls(camera, renderer.domElement);
+
+    animate();
+  }
+
+  async function getConstellationStars(starsign) {
+    const data = arrays[starsign];
+    console.log(`Sternen-Daten für ${starsign}:`, data);
+    return data;
+  }
+
+  async function customLookAtControls(x, y, z) {
+    const controlPosition = camera.position;
+    console.log("Kameraposition:", camera?.position);
+    console.log("Ziel der OrbitControls:", controls?.target);
+
+    let dirVector = {
+      x: x - controlPosition.x,
+      y: y - controlPosition.y,
+      z: z - controlPosition.z,
+    };
+
+    let length = Math.sqrt(
+      dirVector.x ** 2 + dirVector.y ** 2 + dirVector.z ** 2
+    );
+
+    dirVector.x /= length;
+    dirVector.y /= length;
+    dirVector.z /= length;
+
+    const distance = 0.01;
+
+    let newPoint2 = {
+      x: controlPosition.x + dirVector.x * distance,
+      y: controlPosition.y + dirVector.y * distance,
+      z: controlPosition.z + dirVector.z * distance,
+    };
+    console.log(newPoint2);
+    controls.target.copy(new THREE.Vector3(newPoint2.x, newPoint2.y, newPoint2.z));
+    controls.update();
+  }
+
+  function addStars(stars) {
+    if (stars.length === 0) {
+      console.error("Keine gültigen Sterndaten verfügbar.");
+      return;
+    }
+
+    stars.forEach((star) => {
+      let starGeometry;
+      const originalRadius = berechneSternRadius(star.ci, star.absmag);
+      let scaledRadius = mapRadius(
+        originalRadius,
+        minRadius,
+        maxRadius,
+        minNewRadius,
+        maxNewRadius
+      );
+      let color = getColorByCI(star.ci);
+      let intensity = getIntensityByMag(star.mag);
+      if (star.id === 1) {
+        color = 0xff0000;
+        intensity = 0xff0000;
+      }
+      if (isNaN(scaledRadius)) {
+        scaledRadius = 0.05;
+      }
+      if (star.dist < 200) {
+        starGeometry = new THREE.SphereGeometry(scaledRadius, 16, 16);
+      } else if (star.dist < 400) {
+        starGeometry = new THREE.SphereGeometry(scaledRadius, 8, 8);
+      } else {
+        starGeometry = new THREE.SphereGeometry(scaledRadius, 4, 4);
+      }
+
+      const starMaterial = new THREE.MeshStandardMaterial({
+        color: color,
+        emissive: color,
+        emissiveIntensity: intensity,
+      });
+
+      const sphere = new THREE.Mesh(starGeometry, starMaterial);
+
+      // Skalierung der Position der Sterne
+      sphere.position.set(star.y, star.z, star.x);
+      sphere.userData.starData = { ...star }; // Daten anhängen
+
+      scene.add(sphere); // Kugel zur Szene hinzufügen
+    });
+  }
+
+  function addConstellationLines(stars) {
+    if (stars.length === 0) {
+      console.error("Keine gültigen Sterndaten verfügbar.");
+      return;
+    }
+
+    for (let i = 1; i < stars.length - 1; i++) {
+      const start = stars[i];
+      const end = stars[i + 1];
+      const geometry = new THREE.BufferGeometry();
+      const vertices = new Float32Array([
+        start.y,
+        start.z,
+        start.x,
+        end.y,
+        end.z,
+        end.x,
+      ]);
+      geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+      const material = new THREE.LineBasicMaterial({ color: 0xffffff }); // Farbe der Linie
+      const line = new THREE.Line(geometry, material);
+      lineGroup.add(line);
+    }
+    customLookAtControls(stars[0].y, stars[0].z, stars[0].x);
+  }
+
+  function getColorByCI(ci) {
+    if (ci < 0)
+      return 0x9db4ff; // Blau
+    else if (ci < 0.5)
+      return 0xbcd2ff; // Hellblau
+    else if (ci < 1.0)
+      return 0xfbfbfb; // Weiß
+    else if (ci < 1.5)
+      return 0xfff4ea; // Gelblich
+    else return 0xffd2a1; // Orange/Rot
+  }
+
+  function getIntensityByMag(mag) {
+    const minMag = 0;
+    const maxMag = 10;
+    const minIntensity = 0.1;
+    const maxIntensity = 1;
+
+    if (mag > maxMag) mag = maxMag;
+    const intensity =
+      maxIntensity -
+      ((mag - minMag) / (maxMag - minMag)) * (maxIntensity - minIntensity);
+    return intensity;
+  }
+
+  function berechneSternRadius(CI, M) {
+    const L_sonne = 3.828e26;
+    const sigma = 5.67e-8;
+    const pi = Math.PI;
+
+    const T = 4600 * (1 / (0.92 * CI + 1.7) + 1 / (0.92 * CI + 0.62));
+    const L = L_sonne * Math.pow(10, 0.4 * (4.83 - M));
+    const R = Math.sqrt(L / (4 * pi * sigma * Math.pow(T, 4)));
+    const R_sonnen = R / 6.96e8;
+
+    return R_sonnen;
+  }
+
+  function mapRadius(originalRadius, minOriginal, maxOriginal, minNew, maxNew) {
+    return (
+      ((originalRadius - minOriginal) / (maxOriginal - minOriginal)) *
+        (maxNew - minNew) +
+      minNew
+    );
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    updateVisibility();
+    renderer.render(scene, camera);
+    controls.update();
+  }
+
+  function updateVisibility() {
+    const frustum = new THREE.Frustum();
+    const cameraViewProjectionMatrix = new THREE.Matrix4();
+
+    cameraViewProjectionMatrix.multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse
+    );
+    frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
+
+    scene.traverse(function (object) {
+      if (object instanceof THREE.Mesh) {
+        const wasVisible = object.visible;
+        object.visible = frustum.intersectsObject(object);
+        if (
+          object.userData.starData &&
+          object.userData.starData.id !== undefined
+        ) {
+          if (object.visible !== wasVisible) {
+            // console.log(`Visibility changed for star: ${object.userData.starData.id}, now visible: ${object.visible}`);
+          }
+        }
+      }
+    });
+  }
 </script>
 
+<style>
+  main {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+  }
+  p {
+    position: absolute;
+    color: white;
+    top: 100px;
+    z-index: 100;
+  }
+
+  h1 {
+    position: absolute;
+    color: white;
+    top: 10px;
+    z-index: 100;
+  }
+  button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+  }
+</style>
+
 <main>
-  <button on:click={() => {push("/")}}>Button</button>
+  <button on:click={() => {
+    document.body.removeChild(renderer.domElement);
+    push("/")}}>Button</button>
   <h1>Hallo, du hast auf das Sternzeichen {starsign} geklickt</h1>
   <p>{description}</p>
 </main>
