@@ -75,7 +75,7 @@
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement); // Stellen Sie sicher, dass dies ausgeführt wird
+    document.getElementById('three-container').appendChild(renderer.domElement);
 
     controls = new OrbitControls(camera, renderer.domElement);
 
@@ -275,37 +275,106 @@
 </script>
 
 <style>
-  main {
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
-    position: relative;
-  }
-  p {
-    position: absolute;
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
-    top: 100px;
-    z-index: 100;
+    background-color: #0d1b2a;
+  }
+  
+  #container {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  #sidebar {
+    position: relative;
+    width: 40%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10; /* Ensuring sidebar is above the canvas */
+  }
+
+  #three-container {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 1; /* Ensuring the canvas is in the background */
   }
 
   h1 {
-    position: absolute;
-    color: white;
-    top: 10px;
-    z-index: 100;
+    margin: 0;
+    font-size: 3em;
+    color: #00ff9f;
   }
-  button {
+
+  p {
+    margin-top: 20px;
+    font-size: 1.2em;
+    line-height: 1.6em;
+  }
+
+  /* Verbesserungen: */
+  header {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 100;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    text-align: center;
+    font-size: 1.5em;
+    z-index: 20;
+  }
+
+  footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    text-align: center;
+    font-size: 1em;
+    z-index: 20;
+  }
+
+  .button {
+    background-color: #00ff9f;
+    border: none;
+    color: #0d1b2a;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1em;
+    margin: 10px 2px;
+    cursor: pointer;
+    border-radius: 5px;
   }
 </style>
 
-<main>
-  <button on:click={() => {
-    document.body.removeChild(renderer.domElement);
-    push("/")}}>Button</button>
-  <h1>Hallo, du hast auf das Sternzeichen {starsign} geklickt</h1>
-  <p>{description}</p>
-</main>
+<div id="container">
+  <header>
+    Discover Your Stars
+  </header>
+  <div id="sidebar">
+    <h1>{starsign}</h1>
+    <p>{description}</p>
+    <button class="button" on:click="{() => push('/explore')}">Explore More</button>
+  </div>
+  <div id="three-container"></div>
+  <footer>
+    &copy; 2024 StarGazer. All rights reserved.
+  </footer>
+</div>
