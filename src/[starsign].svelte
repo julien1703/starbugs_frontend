@@ -372,7 +372,7 @@
     position: relative;
     top: 0;
     left: 0;
-    width: 65%;
+    width: 60%;
     height: 100vh;
     z-index: 1;
   }
@@ -395,8 +395,9 @@
   }
 
   .star-image {
-    max-width: 70%;
-    height: auto;
+    max-width: 100%;
+    max-height: 200px; /* Festgelegte Höhe für die Bilder */
+    object-fit: contain; /* Beibehaltung des Seitenverhältnisses */
     margin-top: 20px;
     border: 1px solid #ffcc00;
     border-radius: 10px;
@@ -416,7 +417,7 @@
     text-shadow: 0 0 4px rgba(255, 255, 255, 0.7);
   } */
 
-  footer {
+  /* footer {
     position: absolute;
     bottom: 0;
     width: 100%;
@@ -427,7 +428,7 @@
     font-size: 1em;
     z-index: 20;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
-  }
+  } */
 
   .button {
     background-color: #ffcc00;
@@ -474,7 +475,7 @@
     <button class="button" on:click="{() => push('/')}">Zurück</button>
   </div>
   <div id="three-container"></div>
-  <footer>
+  <!-- <footer>
     &copy; 2024 StarGazer. All rights reserved.
-  </footer>
+  </footer> -->
 </div>
