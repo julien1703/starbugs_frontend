@@ -5,6 +5,19 @@
   import * as THREE from "three";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
   import { arrays } from "./components/arrays.js";
+  import leo from "../Sternbilder/leo.webp";
+  import vir from "../Sternbilder/vir.webp";
+  import lib from "../Sternbilder/lib.webp";
+  import sco from "../Sternbilder/sco.webp";
+  import sgr from "../Sternbilder/sgr.webp";
+  import cap from "../Sternbilder/cap.webp";
+  import aqr from "../Sternbilder/aqr.webp";
+  import psc from "../Sternbilder/psc.webp";
+  import ori from "../Sternbilder/ori.webp";
+  import gem from "../Sternbilder/gem.webp";
+  import tau from "../Sternbilder/tau.webp";
+  import cnc from "../Sternbilder/cnc.webp";
+  import ari from "../Sternbilder/ari.webp";
 
   let starsign = "";
   let description = "";
@@ -15,7 +28,7 @@
   const minRadius = 0.17;
   const maxRadius = 1587.37;
   const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
-  const maxNewRadius = 0.3; 
+  const maxNewRadius = 0.3;
 
   onMount(async () => {
     const hashFragment = window.location.hash.substring(1);
@@ -38,7 +51,50 @@
     console.log(`Sternzeichen: ${starsign}`);
 
     // Setze den Pfad zum Bild
-    imagePath = `.../Sternbilder/${starsign}.webp`;
+    switch (starsign) {
+      case "leo":
+        imagePath = leo;
+        break;
+      case "vir":
+        imagePath = vir;
+        break;
+      case "lib":
+        imagePath = lib;
+        break;
+      case "sco":
+        imagePath = sco;
+        break;
+      case "sgr":
+        imagePath = sgr;
+        break;
+      case "cap":
+        imagePath = cap;
+        break;
+      case "aqr":
+        imagePath = aqr;
+        break;
+      case "psc":
+        imagePath = psc;
+        break;
+      case "ori":
+        imagePath = ori;
+        break;
+      case "gem":
+        imagePath = gem;
+        break;
+      case "tau":
+        imagePath = tau;
+        break;
+      case "cnc":
+        imagePath = cnc;
+        break;
+      case "ari":
+        imagePath = ari;
+        break;
+      default:
+        console.error("Sternzeichen nicht erkannt");
+        break;
+    }
     console.log(`Bildpfad: ${imagePath}`);
     init();
     getConstellationStars(starsign).then((stars) => {
@@ -58,20 +114,6 @@
     camera.position.z = 0.0001;
 
     scene = new THREE.Scene();
-
-    // Hintergrundbild laden
-    const loader = new THREE.ImageLoader();
-    loader.load(
-      imagePath,
-      function (image) {
-        const texture = new THREE.CanvasTexture(image);
-        scene.background = texture;
-      },
-      undefined,
-      function (err) {
-        console.error(`Fehler beim Laden des Bildes: ${imagePath}`, err);
-      }
-    );
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -279,9 +321,10 @@
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
-    background-color: #0d1b2a;
+    background-color: #001f3f;
+    background-image: linear-gradient(to bottom right, #001f3f, #001f3f 50%, #111 100%);
   }
-  
+
   #container {
     position: relative;
     display: flex;
@@ -293,39 +336,55 @@
 
   #sidebar {
     position: relative;
-    width: 40%;
-    padding: 20px;
+    width: 35%;
+    padding: 40px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10; /* Ensuring sidebar is above the canvas */
+    background-color: rgba(10, 10, 20, 0.9);
+    z-index: 10;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    overflow-y: auto;
+    border-right: 1px solid #0a0a14;
   }
 
   #three-container {
     position: relative;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 65%;
     height: 100vh;
-    z-index: 1; /* Ensuring the canvas is in the background */
+    z-index: 1;
   }
 
   h1 {
     margin: 0;
-    font-size: 3em;
-    color: #00ff9f;
+    font-size: 2.5em;
+    color: #ffcc00;
+    text-shadow: 0 0 2px rgba(255, 204, 0, 0.7);
+    border-bottom: 2px solid #ffcc00;
+    padding-bottom: 10px;
   }
 
   p {
     margin-top: 20px;
     font-size: 1.2em;
-    line-height: 1.6em;
+    line-height: 1.8em;
+    text-align: justify;
+    color: #ddd;
   }
 
-  /* Verbesserungen: */
-  header {
+  .star-image {
+    max-width: 70%;
+    height: auto;
+    margin-top: 20px;
+    border: 1px solid #ffcc00;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+  }
+
+  /* header {
     position: absolute;
     top: 0;
     width: 100%;
@@ -335,7 +394,8 @@
     text-align: center;
     font-size: 1.5em;
     z-index: 20;
-  }
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  } */
 
   footer {
     position: absolute;
@@ -347,31 +407,52 @@
     text-align: center;
     font-size: 1em;
     z-index: 20;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
   }
 
   .button {
-    background-color: #00ff9f;
+    background-color: #ffcc00;
     border: none;
-    color: #0d1b2a;
+    color: #001f3f;
     padding: 10px 20px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 1em;
-    margin: 10px 2px;
+    margin: 20px 0;
     cursor: pointer;
     border-radius: 5px;
+    transition: background-color 0.3s, transform 0.3s;
+  }
+
+  .button:hover {
+    background-color: #ffaa00;
+    transform: scale(1.05);
+  }
+
+  .button:active {
+    background-color: #cc8800;
+  }
+
+  .icon {
+    width: 50px;
+    height: 50px;
+    background-image: url("/mnt/data//{starsign}.webp");
+    background-size: cover;
+    margin-bottom: 20px;
   }
 </style>
 
 <div id="container">
   <header>
-    Discover Your Stars
+    <!-- Discover Your Stars -->
   </header>
   <div id="sidebar">
+    <div class="icon"></div>
     <h1>{starsign}</h1>
     <p>{description}</p>
-    <button class="button" on:click="{() => push('/')}">Explore More</button>
+    <img src="{imagePath}" alt="{starsign} Bild" class="star-image" />
+    <button class="button" on:click="{() => push('/')}">Zurück</button>
   </div>
   <div id="three-container"></div>
   <footer>
