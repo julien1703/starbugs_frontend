@@ -388,8 +388,8 @@
 
   p {
     margin-top: 20px;
-    font-size: 1.2em;
-    line-height: 1.8em;
+    font-size: 1 em;
+    line-height: 1.6em;
     text-align: justify;
     color: #ddd;
   }
