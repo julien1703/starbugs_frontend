@@ -371,7 +371,7 @@
   <div id="sidebar">
     <h1>{starsign}</h1>
     <p>{description}</p>
-    <button class="button" on:click="{() => push('/explore')}">Explore More</button>
+    <button class="button" on:click="{() => push('/')}">Explore More</button>
   </div>
   <div id="three-container"></div>
   <footer>
