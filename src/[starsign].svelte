@@ -20,6 +20,7 @@
   import ari from "../Sternbilder/ari.webp";
 
   let starsign = "";
+  let starsignFullName = "";
   let description = "";
   let imagePath = "";
   let camera, scene, renderer, controls;
@@ -30,10 +31,27 @@
   const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
   const maxNewRadius = 0.3;
 
+  const starsignNames = {
+    leo: "Löwe",
+    vir: "Jungfrau",
+    lib: "Waage",
+    sco: "Skorpion",
+    sgr: "Schütze",
+    cap: "Steinbock",
+    aqr: "Wassermann",
+    psc: "Fische",
+    ori: "Orion",
+    gem: "Zwillinge",
+    tau: "Stier",
+    cnc: "Krebs",
+    ari: "Widder"
+  };
+
   onMount(async () => {
     const hashFragment = window.location.hash.substring(1);
     hashFragment.split("/").forEach((fragment) => {
       starsign = fragment;
+      starsignFullName = starsignNames[fragment] || "Unbekanntes Sternzeichen";
     });
 
     // Text basierend auf dem Sternzeichen generieren
@@ -49,6 +67,7 @@
 
     console.log(`Hash Fragment: ${hashFragment}`);
     console.log(`Sternzeichen: ${starsign}`);
+    console.log(`Sternzeichen Voller Name: ${starsignFullName}`);
 
     // Setze den Pfad zum Bild
     switch (starsign) {
@@ -381,7 +400,7 @@
     margin-top: 20px;
     border: 1px solid #ffcc00;
     border-radius: 10px;
-    box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
   }
 
   /* header {
@@ -394,7 +413,7 @@
     text-align: center;
     font-size: 1.5em;
     z-index: 20;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.7);
   } */
 
   footer {
@@ -407,7 +426,7 @@
     text-align: center;
     font-size: 1em;
     z-index: 20;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
   }
 
   .button {
@@ -449,7 +468,7 @@
   </header>
   <div id="sidebar">
     <div class="icon"></div>
-    <h1>{starsign}</h1>
+    <h1>{starsignFullName}</h1>
     <p>{description}</p>
     <img src="{imagePath}" alt="{starsign} Bild" class="star-image" />
     <button class="button" on:click="{() => push('/')}">Zurück</button>
