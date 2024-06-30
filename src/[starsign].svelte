@@ -355,7 +355,7 @@
 
   #sidebar {
     position: relative;
-    width: 35%;
+    width: 40%;
     padding: 40px;
     display: flex;
     flex-direction: column;
