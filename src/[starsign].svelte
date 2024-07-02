@@ -361,7 +361,7 @@
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
-    background-color: #001f3f;
+    background-color: #002b56;
     background-image: radial-gradient(circle, #001f3f, #111);
   }
 
@@ -401,9 +401,8 @@
   h1 {
     margin: 0;
     font-size: 2.5em;
-    color: #ffcc00;
-    text-shadow: 0 0 2px rgba(255, 204, 0, 0.7);
-    border-bottom: 2px solid #ffcc00;
+    color: #ffffff;
+    border-bottom: 2px solid #00a3d1;
     padding-bottom: 10px;
     width: 100%;
   }
@@ -421,15 +420,14 @@
     max-height: 200px;
     object-fit: contain;
     margin-top: 20px;
-    border: 1px solid #ffcc00;
+    border: 1px solid #00a3d1;
     border-radius: 10px;
-    /* box-shadow: 0 0 5px rgba(255, 204, 0, 0.5); */
   }
 
   .button {
-    background-color: #ffcc00;
+    background-color: #00a3d1;
     border: none;
-    color: #001f3f;
+    color: #000000;
     padding: 10px 20px;
     text-align: center;
     text-decoration: none;
@@ -443,12 +441,9 @@
   }
 
   .button:hover {
-    background-color: #ffaa00;
+    background-color: #00166e;
     transform: scale(1.05);
-  }
-
-  .button:active {
-    background-color: #cc8800;
+    color: white;
   }
 
   .icon {
@@ -463,7 +458,7 @@
   .chat-container {
     display: flex;
     flex-direction: column;
-    border: 1px solid #ffcc00;
+    border: 1px solid #00a3d1;
     padding: 10px;
     margin-top: 20px;
     background-color: rgba(10, 10, 20, 0.9);
@@ -474,7 +469,7 @@
   .chat-title {
     font-size: 1.2em;
     font-weight: bold;
-    color: #ffcc00;
+    color: #ffffff;
     margin-bottom: 5px;
     margin-top: 10px;
     align-self: left;
@@ -496,13 +491,13 @@
 
   .chat-message.user {
     background-color: #001f3f;
-    color: #ffcc00;
+    color: #ffffff;
     align-self: flex-end;
   }
 
   .chat-message.assistant {
-    background-color: #ffcc00;
-    color: #001f3f;
+    background-color: #00a3d1;
+    color: #000000;
     align-self: flex-start;
   }
 
@@ -514,21 +509,22 @@
   .chat-input {
     flex-grow: 1;
     padding: 10px;
-    border: 1px solid #ffcc00;
+    border: 1px solid #00a3d1;
     border-radius: 5px;
     margin-right: 10px;
   }
 
   .chat-send-button {
     padding: 10px;
-    background-color: #ffcc00;
+    background-color: #00a3d1;
     border: none;
     border-radius: 5px;
     cursor: pointer;
   }
 
   .chat-send-button:hover {
-    background-color: #ffaa00;
+    background-color: #00166e;
+    color: white;
   }
 </style>
 
