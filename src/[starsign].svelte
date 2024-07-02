@@ -20,6 +20,8 @@
   import cnc from "../Sternbilder/cnc.webp";
   import ari from "../Sternbilder/ari.webp";
 
+
+  
   let starsign = "";
   let starsignFullName = "";
   let description = "";
@@ -59,8 +61,8 @@
     loading.set(true);
     chatHistory.update(history => [...history, { role: "user", content: message }]);
     try {
-      const response = await axios.post('https://api.julien-offray.de/api/chat', { message });
-      chatHistory.update(history => [...history, { role: "assistant", content: response.data.response }]);
+      const response = await axios.post('https://api.julien-offray.de/api/chat', { message, starsign });
+      chatHistory.update(history => [...history, { role: "assistant", content: `Antwort von OpenAI: ${response.data.response}` }]);
       message = "";
     } catch (error) {
       console.error("Error during chat request:", error);
