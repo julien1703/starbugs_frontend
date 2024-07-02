@@ -17,11 +17,14 @@ Folgen Sie diesen Schritten, um das Projekt lokal zu installieren und auszuführ
    ```bash
    git clone https://github.com/julien1703/starbugs_frontend.git
 2. Wechseln Sie in das Projektverzeichnis:
-    cd starbugs_frontend
-3. Installieren Sie die Abhängigkeiten:
-    npm install
-4. Starten Sie die Anwendung:
-    npm run dev 
+   ```bash
+   cd starbugs_frontend
+4. Installieren Sie die Abhängigkeiten:
+   ```bash
+   npm install
+6. Starten Sie die Anwendung:
+   ```bash
+   npm run dev 
 
 ## Technologie-Stack
 - React: JavaScript-Bibliothek zur Erstellung von Benutzeroberflächen.
