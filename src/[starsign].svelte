@@ -62,7 +62,7 @@
     chatHistory.update(history => [...history, { role: "user", content: message }]);
     try {
       const response = await axios.post('https://api.julien-offray.de/api/chat', { message, starsign });
-      chatHistory.update(history => [...history, { role: "assistant", content: `Antwort von OpenAI: ${response.data.response}` }]);
+      chatHistory.update(history => [...history, { role: "assistant", content: response.data.response }]);
       message = "";
     } catch (error) {
       console.error("Error during chat request:", error);
@@ -427,19 +427,19 @@
   }
 
   .button {
-    background-color: #00a3d1;
-    border: none;
-    color: #000000;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 1em;
-    margin: 20px 0;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s, transform 0.3s;
-    align-self: center;
+    position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background: #00a3d1;
+  color: #000000;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  z-index: 100;
+  transition: background 0.3s ease, transform 0.3s ease, color 0.3s ease;
   }
 
   .button:hover {
@@ -528,6 +528,7 @@
     background-color: #00166e;
     color: white;
   }
+  
 </style>
 
 <div id="container">
