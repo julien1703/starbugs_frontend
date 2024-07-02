@@ -1,6 +1,7 @@
 <script>
   import { push } from "svelte-spa-router";
   import { onMount } from "svelte";
+  import { writable } from "svelte/store";
   import axios from "axios";
   import * as THREE from "three";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -28,7 +29,7 @@
   const maxMag = 8;
   const minRadius = 0.17;
   const maxRadius = 1587.37;
-  const minNewRadius = 0.05; // Mindestgröße für Sichtbarkeit
+  const minNewRadius = 0.05;
   const maxNewRadius = 0.3;
 
   const starsignNames = {
@@ -46,6 +47,27 @@
     cnc: "Krebs",
     ari: "Widder"
   };
+
+  const chatHistory = writable([]);
+  let message = "";
+  let loading = writable(false);
+  const performanceMode = writable(false);
+
+  async function sendMessage() {
+    if (message.trim() === "") return;
+
+    loading.set(true);
+    chatHistory.update(history => [...history, { role: "user", content: message }]);
+    try {
+      const response = await axios.post('https://api.julien-offray.de/api/chat', { message });
+      chatHistory.update(history => [...history, { role: "assistant", content: response.data.response }]);
+      message = "";
+    } catch (error) {
+      console.error("Error during chat request:", error);
+      chatHistory.update(history => [...history, { role: "assistant", content: "Fehler bei der Anfrage" }]);
+    }
+    loading.set(false);
+  }
 
   onMount(async () => {
     const hashFragment = window.location.hash.substring(1);
@@ -221,11 +243,10 @@
 
       const sphere = new THREE.Mesh(starGeometry, starMaterial);
 
-      // Skalierung der Position der Sterne
       sphere.position.set(star.y, star.z, star.x);
-      sphere.userData.starData = { ...star }; // Daten anhängen
+      sphere.userData.starData = { ...star };
 
-      scene.add(sphere); // Kugel zur Szene hinzufügen
+      scene.add(sphere);
     });
   }
 
@@ -248,7 +269,7 @@
         end.x,
       ]);
       geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-      const material = new THREE.LineBasicMaterial({ color: 0xffffff }); // Farbe der Linie
+      const material = new THREE.LineBasicMaterial({ color: 0xffffff });
       const line = new THREE.Line(geometry, material);
       lineGroup.add(line);
     }
@@ -257,14 +278,14 @@
 
   function getColorByCI(ci) {
     if (ci < 0)
-      return 0x9db4ff; // Blau
+      return 0x9db4ff;
     else if (ci < 0.5)
-      return 0xbcd2ff; // Hellblau
+      return 0xbcd2ff;
     else if (ci < 1.0)
-      return 0xfbfbfb; // Weiß
+      return 0xfbfbfb;
     else if (ci < 1.5)
-      return 0xfff4ea; // Gelblich
-    else return 0xffd2a1; // Orange/Rot
+      return 0xfff4ea;
+    else return 0xffd2a1;
   }
 
   function getIntensityByMag(mag) {
@@ -341,7 +362,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
     background-color: #001f3f;
-    background-image: linear-gradient(to bottom right, #001f3f, #001f3f 50%, #111 100%);
+    background-image: radial-gradient(circle, #001f3f, #111);
   }
 
   #container {
@@ -356,7 +377,7 @@
   #sidebar {
     position: relative;
     width: 40%;
-    padding: 40px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -384,11 +405,12 @@
     text-shadow: 0 0 2px rgba(255, 204, 0, 0.7);
     border-bottom: 2px solid #ffcc00;
     padding-bottom: 10px;
+    width: 100%;
   }
 
   p {
     margin-top: 20px;
-    font-size: 1 em;
+    font-size: 1em;
     line-height: 1.6em;
     text-align: justify;
     color: #ddd;
@@ -396,39 +418,13 @@
 
   .star-image {
     max-width: 100%;
-    max-height: 200px; /* Festgelegte Höhe für die Bilder */
-    object-fit: contain; /* Beibehaltung des Seitenverhältnisses */
+    max-height: 200px;
+    object-fit: contain;
     margin-top: 20px;
     border: 1px solid #ffcc00;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+    /* box-shadow: 0 0 5px rgba(255, 204, 0, 0.5); */
   }
-
-  /* header {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    text-align: center;
-    font-size: 1.5em;
-    z-index: 20;
-    text-shadow: 0 0 4px rgba(255, 255, 255, 0.7);
-  } */
-
-  /* footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    text-align: center;
-    font-size: 1em;
-    z-index: 20;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
-  } */
 
   .button {
     background-color: #ffcc00;
@@ -443,6 +439,7 @@
     cursor: pointer;
     border-radius: 5px;
     transition: background-color 0.3s, transform 0.3s;
+    align-self: center;
   }
 
   .button:hover {
@@ -457,25 +454,107 @@
   .icon {
     width: 50px;
     height: 50px;
-    background-image: url("/mnt/data//{starsign}.webp");
+    background-image: url("/mnt/data/{starsign}.webp");
     background-size: cover;
     margin-bottom: 20px;
+    align-self: center;
+  }
+
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ffcc00;
+    padding: 10px;
+    margin-top: 20px;
+    background-color: rgba(10, 10, 20, 0.9);
+    border-radius: 10px;
+    width: 95%;
+  }
+
+  .chat-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ffcc00;
+    margin-bottom: 5px;
+    margin-top: 10px;
+    align-self: left;
+  }
+
+  .chat-history {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 300px;
+    margin-bottom: 10px;
+  }
+
+  .chat-message {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 70%;
+  }
+
+  .chat-message.user {
+    background-color: #001f3f;
+    color: #ffcc00;
+    align-self: flex-end;
+  }
+
+  .chat-message.assistant {
+    background-color: #ffcc00;
+    color: #001f3f;
+    align-self: flex-start;
+  }
+
+  .chat-input-container {
+    display: flex;
+    margin-top: 10px;
+  }
+
+  .chat-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ffcc00;
+    border-radius: 5px;
+    margin-right: 10px;
+  }
+
+  .chat-send-button {
+    padding: 10px;
+    background-color: #ffcc00;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .chat-send-button:hover {
+    background-color: #ffaa00;
   }
 </style>
 
 <div id="container">
   <header>
-    <!-- Discover Your Stars -->
   </header>
   <div id="sidebar">
     <div class="icon"></div>
     <h1>{starsignFullName}</h1>
     <p>{description}</p>
     <img src="{imagePath}" alt="{starsign} Bild" class="star-image" />
+    <div class="chat-container">
+      <div class="chat-title">Stelle Fragen über das Sternzeichen</div>
+      <div class="chat-history">
+        {#each $chatHistory as chat}
+          <div class="chat-message {chat.role}">
+            {chat.content}
+          </div>
+        {/each}
+      </div>
+      <div class="chat-input-container">
+        <input type="text" bind:value={message} class="chat-input" placeholder="Frage über das Sternzeichen..." />
+        <button on:click={sendMessage} class="chat-send-button" disabled={$loading}>Senden</button>
+      </div>
+    </div>
     <button class="button" on:click="{() => push('/')}">Zurück</button>
   </div>
   <div id="three-container"></div>
-  <!-- <footer>
-    &copy; 2024 StarGazer. All rights reserved.
-  </footer> -->
 </div>
