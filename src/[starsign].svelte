@@ -422,7 +422,6 @@
     max-height: 200px;
     object-fit: contain;
     margin-top: 20px;
-    border: 1px solid #00a3d1;
     border-radius: 10px;
   }
 
